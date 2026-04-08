@@ -4,7 +4,7 @@ services:
     env: python
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: python web_server.py & python bot.py
+    startCommand: python run_bot.py
     envVars:
       - key: TELEGRAM_BOT_TOKEN
         sync: false
@@ -12,3 +12,4 @@ services:
         value: 10000
       - key: WEBAPP_URL
         sync: false
+    autoDeploy: true
