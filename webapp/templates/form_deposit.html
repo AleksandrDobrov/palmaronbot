@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поповнення балансу • Palamron</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body class="form-page deposit-form">
+    <div class="form-shell glass-panel">
+        <header>
+            <div>
+                <h1>💎 Поповнення балансу</h1>
+                <p class="form-description">Вкажіть суму, виберіть банк та залиште коментар для уточнення платежу.</p>
+            </div>
+            <button class="ghost-btn" onclick="tryCloseWindow()">×</button>
+        </header>
+
+        <div class="form-user-info">
+            <span>Користувач:</span>
+            <strong id="formUserName">Завантаження...</strong>
+            <span id="formUserId">ID —</span>
+        </div>
+
+        <form onsubmit="submitDepositForm(event)">
+            <label for="depositAmountInput">Сума поповнення</label>
+            <input type="number" id="depositAmountInput" class="input-field" placeholder="Наприклад, 2500" min="1" step="0.01">
+
+            <label for="depositBankSelect">Банк</label>
+            <select id="depositBankSelect" class="input-field">
+                <option value="monobank">Monobank</option>
+                <option value="privat">ПриватБанк</option>
+                <option value="pumb">ПУМБ</option>
+                <option value="oschad">Ощадбанк</option>
+                <option value="other">Інший банк</option>
+            </select>
+
+            <label for="depositCommentInput">Коментар / Примітка</label>
+            <textarea id="depositCommentInput" class="input-field" rows="3" placeholder="Напишіть, з якого банку або хто здійснює платіж"></textarea>
+
+            <p class="form-hint" id="depositFormHint">Мінімальна сума поповнення уточнюється...</p>
+            <div class="form-status" id="depositFormStatus"></div>
+
+            <button type="submit" class="primary-btn">Створити заявку</button>
+        </form>
+
+        <div class="form-actions">
+            <a class="ghost-btn" href="/cabinet">← Повернутися до кабінету</a>
+            <button class="secondary-btn" onclick="openSupport()">Звʼязатися з підтримкою</button>
+        </div>
+
+        <p class="support-link">Питання? Напишіть у підтримку прямо з бота, щоб прискорити перевірку.</p>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/telegram-webapp.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+    <script>
+        const telegramApp = window.telegramWebApp || window.Telegram?.WebApp || window.Telegram?.webApp || null;
+        let apiClient = null;
+        let depositLimits = { min_deposit: null };
+
+        function tryCloseWindow() {
+            if (telegramApp && typeof telegramApp.close === 'function') {
+                telegramApp.close();
+            } else if (window.close) {
+                window.close();
+            }
+        }
+
+        function formatCurrency(value) {
+            const number = parseFloat(value || 0);
+            if (isNaN(number)) return '0.00';
+            return number.toFixed(2);
+        }
+
+        function setDepositStatus(type, message) {
+            const statusEl = document.getElementById('depositFormStatus');
+            if (!statusEl) return;
+            statusEl.textContent = message || '';
+            statusEl.className = 'form-status';
+            if (type && message) {
+                statusEl.classList.add(type);
+            }
+            statusEl.style.display = message ? 'block' : 'none';
+        }
+
+        async function initDepositForm() {
+            try {
+                apiClient = new API();
+            } catch (error) {
+                console.error('API init error:', error);
+                setDepositStatus('error', 'Не вдалося ініціалізувати клієнт. Оновіть сторінку.');
+                return;
+            }
+
+            try {
+                const data = await apiClient.getCabinetData();
+                if (data && data.user) {
+                    const userName = document.getElementById('formUserName');
+                    const userId = document.getElementById('formUserId');
+                    if (userName) {
+                        userName.textContent = data.user.name || 'Користувач';
+                    }
+                    if (userId) {
+                        userId.textContent = `ID ${data.user.id || '—'}`;
+                    }
+                }
+                depositLimits = data.limits || depositLimits;
+                const hint = document.getElementById('depositFormHint');
+                if (hint && depositLimits.min_deposit !== null) {
+                    hint.textContent = `Мінімальне поповнення: ${formatCurrency(depositLimits.min_deposit)}₴`;
+                } else if (hint) {
+                    hint.textContent = 'Мінімальна сума уточнюється з адміністратором.';
+                }
+            } catch (error) {
+                console.error('Cabinet data error:', error);
+                setDepositStatus('error', error.message || 'Не вдалося завантажити дані користувача');
+            }
+        }
+
+        async function submitDepositForm(event) {
+            if (event) {
+                event.preventDefault();
+            }
+            if (!apiClient) {
+                setDepositStatus('error', 'API клієнт недоступний. Оновіть сторінку.');
+                return;
+            }
+
+            const amountInput = document.getElementById('depositAmountInput');
+            const bankSelect = document.getElementById('depositBankSelect');
+            const commentInput = document.getElementById('depositCommentInput');
+
+            const rawValue = (amountInput && amountInput.value ? amountInput.value : '').replace(',', '.');
+            const amount = parseFloat(rawValue);
+            if (isNaN(amount) || amount <= 0) {
+                setDepositStatus('error', 'Вкажіть коректну суму для поповнення');
+                return;
+            }
+
+            if (depositLimits.min_deposit !== null && amount < depositLimits.min_deposit) {
+                setDepositStatus('error', `Мінімальне поповнення: ${formatCurrency(depositLimits.min_deposit)}₴`);
+                return;
+            }
+
+            let bankLabel = '';
+            if (bankSelect && bankSelect.options && bankSelect.selectedIndex >= 0) {
+                const option = bankSelect.options[bankSelect.selectedIndex];
+                bankLabel = option ? option.text : '';
+            }
+            const commentValue = commentInput && commentInput.value ? commentInput.value.trim() : '';
+            const combinedComment = bankLabel ? `[${bankLabel}] ${commentValue}`.trim() : commentValue;
+
+            setDepositStatus('pending', 'Створюємо заявку...');
+            try {
+                const result = await apiClient.createDeposit(amount, combinedComment);
+                const depositId = result && result.deposit_id ? result.deposit_id : '';
+                setDepositStatus('success', depositId ? `✅ Заявку №${depositId} створено.` : '✅ Заявку створено.');
+                if (amountInput) amountInput.value = '';
+                if (commentInput) commentInput.value = '';
+            } catch (error) {
+                console.error('Create deposit error:', error);
+                setDepositStatus('error', error.message || 'Не вдалося створити заявку');
+            }
+        }
+
+        function openSupport() {
+            if (telegramApp && typeof telegramApp.openLink === 'function') {
+                telegramApp.openLink('https://t.me/palamron_support');
+            } else {
+                window.open('https://t.me/palamron_support', '_blank');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initDepositForm);
+        window.submitDepositForm = submitDepositForm;
+    </script>
+</body>
+</html>
+
+

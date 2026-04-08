@@ -1,0 +1,8 @@
+tunnel: 2dd93e5d-c519-4d01-98dc-e1758ae38482
+credentials-file: C:\Users\fxcze\.cloudflared\2dd93e5d-c519-4d01-98dc-e1758ae38482.json
+
+ingress:
+  - hostname: webapp.palmaron.ua
+    service: http://127.0.0.1:5000
+  - service: http_status:404
+

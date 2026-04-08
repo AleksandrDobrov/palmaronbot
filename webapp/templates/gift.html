@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Подарунок — CS HUD</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body class="gift-body">
+    <div class="gift-app">
+        <div class="hud-broadcast-panel" aria-live="polite">
+            <div class="hud-broadcast-glow"></div>
+            <div class="hud-broadcast-label">LIVE DROPS</div>
+            <div class="hud-broadcast-track" id="broadcastTrack"></div>
+            <div class="hud-broadcast-meta">
+                <span class="hud-dot"></span>
+                <span>Прямий ефір</span>
+            </div>
+        </div>
+
+        <header class="gift-header">
+            <a href="/" class="hud-back-button">
+                <span>←</span>
+                <span>Вихід</span>
+            </a>
+            <div class="gift-header-title">
+                <p class="section-label">Щоденний подарунок</p>
+                <h1>🎁 Кейс удачі</h1>
+                <span class="gift-hero-subtitle">Три спроби, неонові ефекти та повна синхронізація з ботом.</span>
+            </div>
+            <button type="button" class="case-session-chip pulse" id="sessionChip">Синхронізуємо...</button>
+        </header>
+
+        <div class="gift-scroll">
+            <section class="case-and-stats">
+                <div class="case-stage" id="caseStage">
+                    <div class="case-stage-head">
+                        <div class="case-stage-status" id="caseStageStatus">Завантажуємо</div>
+                    </div>
+
+                    <div class="case-shell" id="caseShell">
+                        <div class="case-glow"></div>
+                        <div class="case-face">
+                            <span class="case-tag">Lucky Case</span>
+                            <strong>Забери приз, поки бомба не спрацювала</strong>
+                            <small>Неонова панель в реальному часі</small>
+                        </div>
+                        <div class="case-lights">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                        <div class="case-visual">
+                            <div class="case-visual-lid"></div>
+                            <div class="case-visual-body">
+                                <div class="case-visual-core"></div>
+                                <div class="case-visual-lock"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="case-controls">
+                        <p class="case-instruction" id="caseInstruction">Натисніть кнопку, щоб запустити прокрут.</p>
+                        <button id="spinCaseButton" class="case-spin-btn" type="button">🚀 Запустити прокрут</button>
+                    </div>
+
+                    <div class="case-hint-row">
+                        <div class="case-rare-hint" id="caseHint">Кейс готується. Синхронізуємося з ботом...</div>
+                        <div class="session-state" id="sessionState">Зчитуємо стан сесії...</div>
+                    </div>
+
+                    <div class="roller-block">
+                        <div class="roller-label">
+                            <div>
+                                <span>CS DROP ROLLER</span>
+                                <small>Вказівник по центру — ваша нагорода</small>
+                            </div>
+                        </div>
+                        <div class="roller-wrapper">
+                            <div class="roller-track" id="rollerTrack"></div>
+                            <div class="roller-overlay"></div>
+                            <div class="roller-pointer"></div>
+                            <div class="roller-pointer-line"></div>
+                        </div>
+                        <div class="roller-hints">
+                            <div><span>💣</span> — бомба спалює накопичення</div>
+                            <div><span>💰</span> — миттєві гривні на баланс</div>
+                            <div><span>🍎</span> — бонусні фрукти у сад</div>
+                        </div>
+                    </div>
+                </div>
+
+                <aside class="gift-side">
+                    <div class="stats-board glass-panel">
+                        <div class="stats-grid">
+                            <div class="gift-stat-card">
+                                <span class="stat-label">Рівень саду</span>
+                                <strong id="gardenLevel">—</strong>
+                            </div>
+                            <div class="gift-stat-card">
+                                <span class="stat-label">Спроб залишилось</span>
+                                <strong id="attemptsLeft">—</strong>
+                            </div>
+                            <div class="gift-stat-card">
+                                <span class="stat-label">Накопичено UAH</span>
+                                <strong id="accumulatedBalance">0.00₴</strong>
+                            </div>
+                            <div class="gift-stat-card">
+                                <span class="stat-label">Накопичено фруктів</span>
+                                <strong id="accumulatedFruits">0</strong>
+                            </div>
+                        </div>
+                        <div id="giftMessage" class="gift-message"></div>
+                        <div id="waitMessage" class="gift-wait" role="status"></div>
+                    </div>
+
+                    <div class="reward-panel glass-panel">
+                        <div class="reward-panel-header">
+                            <h4>🎯 Можливі призи</h4>
+                            <p id="rewardSubtitle">Як у Telegram-боті</p>
+                        </div>
+                        <div class="reward-pool" id="rewardPool"></div>
+                    </div>
+                </aside>
+            </section>
+
+            <section class="reward-actions">
+                <div class="reward-summary" id="rewardSummary">
+                    <p>Поки що без виграшу. Запустіть кейс.</p>
+                </div>
+                <button id="collectButton" class="primary-btn hud-primary-btn" type="button" style="display:none;">💰 Забрати виграш</button>
+            </section>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-stack"></div>
+
+    <div class="case-overlay" id="caseOverlay" aria-hidden="true">
+        <div class="overlay-backdrop"></div>
+        <div class="overlay-panel">
+            <div class="overlay-particles" id="overlayParticles"></div>
+            <div class="overlay-content">
+                <p class="overlay-label">Результат прокруту</p>
+                <div class="overlay-result" id="overlayResult"></div>
+                <button type="button" class="hud-primary-btn overlay-close" id="overlayCloseButton">Продовжити гру</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/snowflakes.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script type="module" src="{{ url_for('static', filename='js/gift.js') }}"></script>
+    <script>
+        // Загружаем данные пользователя при загрузке страницы
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (typeof loadUserData === 'function') {
+                try {
+                    await loadUserData();
+                } catch (error) {
+                    console.error('Error loading user data:', error);
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+

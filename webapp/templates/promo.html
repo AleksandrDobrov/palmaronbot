@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Промокод - INVESTING PALMARON BOT</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="header-decoration header-decoration-left"></div>
+            <div class="header-decoration header-decoration-right"></div>
+            <div class="header-content">
+                <a href="/" class="back-button">← Назад</a>
+                <h1>🎟️ Промокод</h1>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="promo-container">
+                <div class="promo-info glass-panel">
+                    <div class="promo-info-title">💼 Введіть свій інвестиційний промокод!</div>
+                    <div class="promo-info-text">
+                        🚀 <b>Ваша можливість стати ще успішнішим інвестором!</b><br><br>
+                        🔒 Промокоди — це ексклюзивний доступ до преміальних бонусів, додаткових прибутків та VIP-можливостей.<br><br>
+                        💸 <b>Введіть промокод нижче та отримайте:</b><br>
+                        • Миттєві бонуси на баланс<br>
+                        • Ексклюзивні предмети для саду<br>
+                        • Підвищення статусу серед інвесторів<br><br>
+                        🌟 <b>Не втрачайте шанс — активуйте свій промокод і примножуйте капітал разом з нами!</b> 🌟
+                    </div>
+                </div>
+
+                <div class="promo-form glass-panel">
+                    <input 
+                        type="text" 
+                        id="promoCodeInput" 
+                        class="input-field promo-input" 
+                        placeholder="ВВЕДІТЬ ПРОМОКОД"
+                        maxlength="50"
+                        autocomplete="off"
+                    >
+                    <button id="activateButton" class="primary-btn promo-button" onclick="activatePromo()">
+                        🎉 Активувати промокод
+                    </button>
+                    <div id="resultMessage" class="form-status" style="display:none;"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+    <script>
+        const telegramWebApp = window.Telegram.WebApp;
+        telegramWebApp.ready();
+        telegramWebApp.expand();
+
+        // Обработка Enter в поле ввода
+        document.getElementById('promoCodeInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                activatePromo();
+            }
+        });
+
+        async function activatePromo() {
+            const input = document.getElementById('promoCodeInput');
+            const button = document.getElementById('activateButton');
+            const resultDiv = document.getElementById('resultMessage');
+            
+            const code = input.value.trim().toUpperCase();
+            
+            if (!code) {
+                showPromoModal('error', 'Помилка', 'Будь ласка, введіть промокод');
+                return;
+            }
+
+            // Блокируем кнопку
+            button.disabled = true;
+            button.textContent = '⏳ Активується...';
+            resultDiv.innerHTML = '';
+
+            try {
+                const response = await fetch('/api/user/promo/activate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ code: code })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.status === 'ok') {
+                    const reward = data.reward;
+                    let title = '🎉 Промокод активовано!';
+                    let message = '';
+                    let icon = '✅';
+                    
+                    if (reward.type === 'balance') {
+                        message = `💰 На ваш баланс нараховано: <strong>${reward.amount.toFixed(2)} UAH</strong>`;
+                        icon = '💰';
+                    } else if (reward.type === 'fruit') {
+                        message = `💎 Нараховано: <strong>${reward.amount} ${reward.item_name}</strong>`;
+                        icon = '💎';
+                    } else if (reward.type === 'booster') {
+                        message = `${reward.emoji} Активовано бустер <strong>${reward.item_name}</strong> на ${Math.floor(reward.amount/60)} хв!`;
+                        icon = reward.emoji || '⚡';
+                    } else if (reward.type === 'tree') {
+                        message = `🌳 Видано <strong>${reward.amount} дерево(а)</strong> типу ${reward.item}!`;
+                        icon = '🌳';
+                    } else {
+                        message = reward.message || 'Нагорода нарахована!';
+                    }
+                    
+                    showPromoModal('success', title, message, icon);
+                    input.value = '';
+                    
+                    // Обновляем баланс пользователя
+                    if (window.loadUserData) {
+                        await window.loadUserData();
+                    }
+                    
+                    // Показываем уведомление в Telegram
+                    telegramWebApp.showAlert(title + '\n\n' + message.replace(/<[^>]*>/g, ''));
+                } else {
+                    const errorMessage = data.message || data.error || 'Помилка активації промокоду';
+                    showPromoModal('error', 'Помилка', errorMessage);
+                }
+            } catch (error) {
+                console.error('Error activating promo:', error);
+                showPromoModal('error', 'Помилка', 'Помилка підключення до сервера. Перевірте інтернет-з\'єднання.');
+            } finally {
+                button.disabled = false;
+                button.textContent = '🎉 Активувати промокод';
+            }
+        }
+        
+        /**
+         * Показывает красивое модальное окно для результата активации промокода
+         */
+        function showPromoModal(type, title, message, icon = '') {
+            // Удаляем старое модальное окно если есть
+            const oldModal = document.getElementById('promoResultModal');
+            if (oldModal) {
+                oldModal.remove();
+            }
+            
+            // Создаем новое модальное окно
+            const modal = document.createElement('div');
+            modal.id = 'promoResultModal';
+            modal.className = 'notification-modal';
+            modal.style.display = 'flex';
+            
+            const bgColor = type === 'success' 
+                ? 'linear-gradient(135deg, rgba(76, 175, 80, 0.95) 0%, rgba(56, 142, 60, 0.95) 100%)'
+                : 'linear-gradient(135deg, rgba(244, 67, 54, 0.95) 0%, rgba(198, 40, 40, 0.95) 100%)';
+            
+            const borderColor = type === 'success' ? 'rgba(76, 175, 80, 0.5)' : 'rgba(244, 67, 54, 0.5)';
+            
+            modal.innerHTML = `
+                <div class="modal-overlay" onclick="closePromoResultModal()"></div>
+                <div class="modal-content" style="max-width: 400px; background: ${bgColor}; border: 2px solid ${borderColor};">
+                    <div class="modal-header" style="border-bottom: 2px solid ${borderColor};">
+                        <h2 style="color: white; margin: 0; display: flex; align-items: center; gap: 12px;">
+                            <span style="font-size: 32px;">${icon}</span>
+                            <span>${title}</span>
+                        </h2>
+                        <button class="modal-close" onclick="closePromoResultModal()" style="color: white;">×</button>
+                    </div>
+                    <div class="modal-body" style="padding: 24px; text-align: center;">
+                        <div style="color: white; font-size: 16px; line-height: 1.6;">
+                            ${message}
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="border-top: 2px solid ${borderColor}; padding: 16px;">
+                        <button class="modal-btn" onclick="closePromoResultModal()" style="width: 100%; background: rgba(255, 255, 255, 0.2); border: 2px solid rgba(255, 255, 255, 0.3); color: white;">
+                            Закрити
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Автоматически закрываем через 5 секунд для успеха
+            if (type === 'success') {
+                setTimeout(() => {
+                    closePromoResultModal();
+                }, 5000);
+            }
+        }
+        
+        function closePromoResultModal() {
+            const modal = document.getElementById('promoResultModal');
+            if (modal) {
+                modal.style.display = 'none';
+                setTimeout(() => modal.remove(), 300);
+            }
+        }
+
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('resultMessage');
+            resultDiv.className = `form-status ${type}`;
+            resultDiv.textContent = message;
+            resultDiv.style.display = 'block';
+            
+            // Автоматично ховаємо через 5 секунд
+            setTimeout(() => {
+                resultDiv.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
+
+
+

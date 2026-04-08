@@ -1,0 +1,1825 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Сад - INVESTING PALMARON BOT</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body class="garden-body">
+    <div class="garden-app">
+        <header class="garden-header-modern">
+            <a href="/" class="garden-back-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                <span>Назад</span>
+            </a>
+            <div class="garden-header-center">
+                <h1>🌳 Сад</h1>
+            </div>
+        </header>
+
+        <div class="garden-scroll">
+            <main class="main-content">
+            <section class="cabinet-section glass-panel">
+                <h3 class="section-title">🌳 Ваш сад</h3>
+                <div class="garden-2d-wrapper" id="garden2dWrapper">
+                    <div class="garden-2d-background">
+                        <div class="garden-2d-ground"></div>
+                        <div class="garden-2d-sky"></div>
+                        <div class="garden-2d-particles" id="garden2dParticles"></div>
+                        <div class="garden-2d-trees" id="garden2dTrees"></div>
+                    </div>
+                    <div class="garden-2d-hint">Обирайте дерево, щоб побачити стан та полити.</div>
+                </div>
+            </section>
+
+            <section class="cabinet-section glass-panel garden-field-section">
+                <div class="garden-field-header">
+                    <div>
+                        <p class="section-label">Візуальний режим</p>
+                        <h3>🌿 Поляна ваших дерев</h3>
+                        <span>Обирайте дерево, поливайте та спостерігайте за ростом.</span>
+                    </div>
+                    <div class="garden-field-actions">
+                        <div class="harvest-indicator" id="harvestIndicator">
+                            <div class="harvest-status" id="harvestStatusLabel">Завантажуємо дані саду...</div>
+                            <div class="harvest-sub" id="harvestStatusSub">Перевіряємо час збору</div>
+                        </div>
+                        <div class="harvest-actions">
+                            <button class="ghost-btn" data-harvest-btn onclick="harvestFruits()">🍎 Зібрати врожай</button>
+                            <button class="ghost-btn" onclick="showSellFruitsModal()">📈 Продати фрукти</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="garden-alerts" id="gardenAlerts" style="display:none;">
+                    <div class="garden-alert danger" id="gardenAlertWithered"></div>
+                    <div class="garden-alert warn" id="gardenAlertLowWater"></div>
+                    <div class="garden-alert success" id="gardenAlertHealthy"></div>
+                </div>
+                <div class="garden-slot-grid" id="gardenFieldGrid">
+                    <div class="skeleton-card tall"></div>
+                    <div class="skeleton-card tall"></div>
+                    <div class="skeleton-card tall"></div>
+                </div>
+            </section>
+
+            <!-- Уровень сада -->
+            <section class="cabinet-section">
+                <div class="garden-level-card">
+                    <div class="level-info">
+                        <h3>Рівень саду: <span id="gardenLevel">0</span></h3>
+                        <p id="levelName" class="level-name">—</p>
+                        <div class="level-stats">
+                            <span>Бонус: <span id="levelBonus">0%</span></span>
+                            <span>Комісія: <span id="levelCommission">15%</span></span>
+                        </div>
+                    </div>
+                    <button id="upgradeBtn" class="upgrade-btn" onclick="showUpgradeModal()" style="display: none;">
+                        ⬆ Підвищити рівень
+                    </button>
+                </div>
+            </section>
+
+            <!-- Статистика -->
+            <section class="cabinet-section">
+                <h3 class="section-title">📊 Статистика</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">🌳</div>
+                        <div class="stat-label">Дерев</div>
+                        <div class="stat-value" id="totalTrees">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-label">Баланс</div>
+                        <div class="stat-value" id="gardenBalance">0₴</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📈</div>
+                        <div class="stat-label">Дохід/год</div>
+                        <div class="stat-value" id="hourlyIncome">0₴</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🍎</div>
+                        <div class="stat-label">Фруктів</div>
+                        <div class="stat-value" id="totalFruits">0₴</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Магазин дерев (отдельная секция) -->
+            <section class="cabinet-section glass-panel">
+                <div class="tree-market-header">
+                    <div>
+                        <h3 class="section-title">🌱 Магазин дерев</h3>
+                        <p class="tree-market-subtitle">Ціни та дохід контролює адмінка. Купуйте прямо тут.</p>
+                    </div>
+                    <button class="ghost-btn" onclick="showBuyTreeModal()">📋 Всі пропозиції</button>
+                </div>
+                <div class="tree-market-grid" id="treeMarketGrid">
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                    <div class="skeleton-card"></div>
+                </div>
+            </section>
+
+            <!-- Деревья -->
+            <section class="cabinet-section">
+                <h3 class="section-title">🌳 Мої дерева</h3>
+                <div id="treesList" class="trees-list">
+                    <p class="empty-message">Завантаження...</p>
+                </div>
+            </section>
+
+            <!-- Фрукты -->
+            <section class="cabinet-section">
+                <h3 class="section-title">🍎 Мої фрукти</h3>
+                <div id="fruitsList" class="fruits-list">
+                    <p class="empty-message">Завантаження...</p>
+                </div>
+            </section>
+
+            <!-- Действия -->
+            <section class="cabinet-section">
+                <div class="action-buttons">
+                    <button class="action-btn btn-buy-tree" onclick="showBuyTreeModal()">
+                        <span class="btn-icon">🛒</span>
+                        <span class="btn-text">Купити дерево</span>
+                    </button>
+                    <button class="action-btn btn-harvest" data-harvest-btn onclick="harvestFruits()">
+                        <span class="btn-icon">🍎</span>
+                        <span class="btn-text">Зібрати фрукти</span>
+                    </button>
+                    <button class="action-btn btn-sell" onclick="showSellFruitsModal()">
+                        <span class="btn-icon">📈</span>
+                        <span class="btn-text">Продати фрукти</span>
+                    </button>
+                </div>
+            </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- Модальное окно покупки дерева -->
+    <div id="buyTreeModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🛒 Купити дерево</h2>
+                <button class="modal-close" onclick="closeBuyTreeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="treesForSale" class="trees-for-sale">
+                    <p>Завантаження...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно продажи фруктов -->
+    <div id="sellFruitsModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📈 Продати фрукти</h2>
+                <button class="modal-close" onclick="closeSellFruitsModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="fruitsForSale" class="fruits-for-sale">
+                    <p>Завантаження...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно повышения уровня -->
+    <div id="upgradeModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⬆ Підвищити рівень саду</h2>
+                <button class="modal-close" onclick="closeUpgradeModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="upgradeInfo">
+                    <p>Завантаження...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="toast-stack"></div>
+
+    <script src="{{ url_for('static', filename='js/telegram-webapp.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="{{ url_for('static', filename='js/garden3d.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script>
+        // Загружаем данные пользователя при загрузке страницы
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (typeof loadUserData === 'function') {
+                try {
+                    await loadUserData();
+                } catch (error) {
+                    console.error('Error loading user data:', error);
+                }
+            }
+        });
+    </script>
+    <script>
+        let gardenData = null;
+        let treePrices = null;
+        let garden3D = null;
+        let selectedTreeMeta = null;
+        let flatTreeSlots = [];
+        let toastReady = false;
+        let isGardenLoading = false;
+        let pendingGardenReload = false;
+        let gardenRefreshTimer = null;
+        const gardenTimers = {
+            harvest: null,
+            watering: null
+        };
+
+        function getTelegramApp() {
+            return window.telegramWebApp || window.Telegram?.WebApp || window.Telegram?.webApp || null;
+        }
+
+        function safeAlert(message, type = 'info') {
+            const tg = getTelegramApp();
+            if (tg && typeof tg.showAlert === 'function') {
+                tg.showAlert(message);
+            } else {
+                showToast(message, type);
+            }
+        }
+
+        function safeConfirm(message, callback) {
+            const tg = getTelegramApp();
+            if (tg && typeof tg.showConfirm === 'function') {
+                tg.showConfirm(message, callback);
+            } else {
+                const confirmed = window.confirm(message || 'Підтвердити дію?');
+                if (typeof callback === 'function') {
+                    callback(confirmed);
+                }
+            }
+        }
+
+        function deriveWaterVisual(watering = {}) {
+            const isWithered = Boolean(watering.is_withered);
+            const baseWater = Math.round(Number(watering.water_level ?? 100));
+            const interval = Math.max(60, Number(watering.watering_interval) || 900);
+            const witherThreshold = Math.max(interval * 2, Number(watering.wither_threshold) || interval * 8);
+            const secondsUntilNext = Math.max(0, Number(watering.seconds_until_next_water) || 0);
+            const timePassed = Math.max(0, Number(watering.time_passed) || 0);
+            const canWater = watering.can_water_now !== false;
+
+            let displayLevel = baseWater;
+            if (isWithered) {
+                displayLevel = Math.min(displayLevel, 25);
+            } else if (!canWater && secondsUntilNext > 0) {
+                const ratio = 1 - Math.min(1, secondsUntilNext / interval);
+                displayLevel = Math.max(baseWater, Math.round(65 + ratio * 30));
+            } else {
+                const ratio = Math.min(1, timePassed / witherThreshold);
+                displayLevel = Math.max(15, Math.round(100 - ratio * 70));
+            }
+            displayLevel = Math.min(100, displayLevel);
+
+            const statusClass = isWithered
+                ? 'danger'
+                : displayLevel < 40
+                    ? 'warn'
+                    : 'success';
+            let statusLabel = 'Здорове';
+            if (isWithered) statusLabel = 'Зав\'яло';
+            else if (displayLevel < 40) statusLabel = 'Мало води';
+
+            const hint = isWithered
+                ? 'Полив необхідний'
+                : canWater
+                    ? 'Можна поливати'
+                    : `Полив через ${formatDurationShort(secondsUntilNext)}`;
+
+            return {
+                displayLevel,
+                statusClass,
+                statusLabel,
+                hint,
+                canWater,
+                secondsUntilNext,
+                isWithered
+            };
+        }
+
+        function applyWaterVisual(slot, visual) {
+            if (!slot || !visual) return;
+            slot.dataset.waterLevel = visual.displayLevel;
+            slot.dataset.displayWater = visual.displayLevel;
+            slot.dataset.canWater = visual.canWater ? 'true' : 'false';
+            slot.dataset.cooldown = visual.secondsUntilNext || 0;
+            const badge = slot.querySelector('.garden-slot-status');
+            if (badge) {
+                badge.className = `garden-slot-status ${visual.statusClass}`;
+                badge.textContent = visual.statusLabel;
+            }
+            const hint = slot.querySelector('.slot-hint');
+            if (hint) {
+                hint.className = `slot-hint ${visual.canWater ? 'success' : ''}`;
+                hint.textContent = visual.hint;
+            }
+            const bar = slot.querySelector('.garden-slot-progress');
+            if (bar) {
+                bar.className = `garden-slot-progress ${visual.statusClass}`;
+                bar.style.width = `${visual.displayLevel}%`;
+            }
+            const value = slot.querySelector('.garden-slot-water span');
+            if (value) {
+                value.textContent = `${visual.displayLevel}%`;
+            }
+            const button = slot.querySelector('[data-action="water"]');
+            if (button) {
+                button.disabled = !visual.canWater;
+            }
+        }
+
+        function updateSlotWateringMetadata(slot, watering = {}) {
+            if (!slot) return;
+            const waterLevel = watering.water_level != null ? watering.water_level : (slot.dataset.baseWater || 100);
+            slot.dataset.baseWater = Math.round(Number(waterLevel));
+            slot.dataset.wateringInterval = Number(watering.watering_interval || slot.dataset.wateringInterval || 0);
+            slot.dataset.witherThreshold = Number(watering.wither_threshold || slot.dataset.witherThreshold || 0);
+            slot.dataset.timePassed = Number(watering.time_passed || 0);
+            slot.dataset.withered = watering.is_withered ? 'true' : 'false';
+        }
+
+        function getHarvestButtons() {
+            return document.querySelectorAll('[data-harvest-btn]');
+        }
+
+        function updateHarvestButtons(state) {
+            const buttons = getHarvestButtons();
+            if (!buttons.length) return;
+            const canHarvest = state?.can_harvest_now;
+            const waitingText = state?.next_ready_in
+                ? `⌛ Через ${formatDurationShort(state.next_ready_in)}`
+                : '⌛ Очікуємо дозрівання';
+            buttons.forEach(btn => {
+                const textSpan = btn.querySelector('.btn-text');
+                if (textSpan) {
+                    textSpan.textContent = canHarvest ? 'Зібрати фрукти' : waitingText;
+                } else {
+                    btn.textContent = canHarvest ? '🍎 Зібрати врожай' : waitingText;
+                }
+                btn.disabled = !canHarvest;
+                btn.classList.toggle('is-disabled', !canHarvest);
+            });
+        }
+
+        function updateGardenAlerts(alerts = {}) {
+            const container = document.getElementById('gardenAlerts');
+            if (!container) return;
+            const withered = Number(alerts.withered_trees) || 0;
+            const lowWater = Number(alerts.low_water_trees) || 0;
+            const total = Number(alerts.total_tree_slots) || 0;
+            const witheredEl = document.getElementById('gardenAlertWithered');
+            const lowWaterEl = document.getElementById('gardenAlertLowWater');
+            const healthyEl = document.getElementById('gardenAlertHealthy');
+
+            let visible = false;
+            if (witheredEl) {
+                if (withered > 0) {
+                    witheredEl.style.display = 'flex';
+                    witheredEl.innerHTML = `☠️ <strong>${withered}</strong> дерев${withered === 1 ? 'о' : 'а'} повністю зав'яло. Полийте їх, щоб відновити ріст.`;
+                    visible = true;
+                } else {
+                    witheredEl.style.display = 'none';
+                }
+            }
+            if (lowWaterEl) {
+                if (lowWater > 0) {
+                    lowWaterEl.style.display = 'flex';
+                    lowWaterEl.innerHTML = `💧 Потребує уваги <strong>${lowWater}</strong> дерев${lowWater === 1 ? 'о' : 'а'}.`;
+                    visible = true;
+                } else {
+                    lowWaterEl.style.display = 'none';
+                }
+            }
+            if (healthyEl) {
+                if (!visible && total > 0) {
+                    healthyEl.style.display = 'flex';
+                    healthyEl.innerHTML = '✅ Усі дерева доглянуті. Продовжуйте в тому ж дусі!';
+                    visible = true;
+                } else {
+                    healthyEl.style.display = 'none';
+                }
+            }
+            container.style.display = visible ? 'flex' : 'none';
+        }
+        
+        async function loadGarden(force = false) {
+            if (isGardenLoading) {
+                if (force) {
+                    pendingGardenReload = true;
+                }
+                return;
+            }
+            isGardenLoading = true;
+            try {
+                stopHarvestCountdown();
+                gardenData = await api.getGarden();
+                
+                // Уровень сада
+                const gardenLevel = gardenData.garden_level || 1;
+                document.getElementById('gardenLevel').textContent = gardenLevel;
+                document.getElementById('levelName').textContent = gardenData.level_info?.name || `Рівень ${gardenLevel}`;
+                document.getElementById('levelBonus').textContent = '+' + (gardenData.level_info?.bonus_percent || 0) + '%';
+                document.getElementById('levelCommission').textContent = (gardenData.level_info?.commission_percent || 15) + '%';
+                
+                const upgradeBtn = document.getElementById('upgradeBtn');
+                if (upgradeBtn) {
+                    // Показываем кнопку если можно повысить уровень И есть цена следующего уровня
+                    const canUpgrade = gardenData.can_upgrade && gardenData.next_level_price;
+                    upgradeBtn.style.display = canUpgrade ? 'block' : 'none';
+                    console.log('[Garden] Upgrade button:', { can_upgrade: gardenData.can_upgrade, next_level_price: gardenData.next_level_price, show: canUpgrade });
+                }
+                
+                // Статистика
+                const totalTrees = Object.values(gardenData.tree_counts || {}).reduce((a, b) => a + b, 0);
+                document.getElementById('totalTrees').textContent = totalTrees;
+                document.getElementById('hourlyIncome').textContent = formatCurrency(gardenData.total_hourly_income || 0) + '₴';
+                document.getElementById('totalFruits').textContent = formatCurrency(gardenData.fruits_total_value || 0) + '₴';
+                
+                // Обновляем баланс если есть элемент
+                const balanceEl = document.getElementById('gardenBalance');
+                if (balanceEl && gardenData.balance !== undefined) {
+                    balanceEl.textContent = formatCurrency(gardenData.balance) + '₴';
+                }
+                updateHarvestIndicator(gardenData.harvest_state);
+                updateHarvestButtons(gardenData.harvest_state);
+                startHarvestCountdown(gardenData.harvest_state);
+                updateGardenAlerts(gardenData.watering_alerts);
+                
+                // Деревья
+                const treesWithWatering = gardenData.trees_with_watering || [];
+                renderTrees(treesWithWatering);
+                renderTreeField(treesWithWatering);
+                // Рендерим 2D сад
+                renderGarden2D(treesWithWatering);
+                
+                // Фрукты
+                renderFruits(gardenData.fruits || []);
+                
+            } catch (error) {
+                console.error('Error loading garden:', error);
+                safeAlert('Помилка завантаження саду', 'error');
+                updateHarvestButtons(null);
+                const grid = document.getElementById('gardenFieldGrid');
+                if (grid) {
+                    grid.innerHTML = `<div class="empty-state error">${error.message || 'Дані недоступні'}</div>`;
+                }
+            } finally {
+                isGardenLoading = false;
+                if (pendingGardenReload) {
+                    pendingGardenReload = false;
+                    loadGarden();
+                }
+            }
+        }
+
+        function stopGardenAutoRefresh() {
+            if (gardenRefreshTimer) {
+                clearInterval(gardenRefreshTimer);
+                gardenRefreshTimer = null;
+            }
+        }
+
+        function startGardenAutoRefresh() {
+            stopGardenAutoRefresh();
+            gardenRefreshTimer = setInterval(() => loadGarden(true), 60000);
+        }
+        
+        function renderTrees(treesData) {
+            const container = document.getElementById('treesList');
+            if (!treesData || treesData.length === 0) {
+                container.innerHTML = '<p class="empty-message">🌱 У вас немає дерев. Купіть перше дерево!</p>';
+                return;
+            }
+            
+            const treeEmojis = {
+                'apple': '🍏',
+                'pear': '🍐',
+                'cherry': '🍒',
+                'peach': '🍑'
+            };
+            
+            const treeNames = {
+                'apple': 'Яблуня',
+                'pear': 'Груша',
+                'cherry': 'Вишня',
+                'peach': 'Персик'
+            };
+            
+            container.innerHTML = treesData.map(treeData => {
+                const emoji = treeEmojis[treeData.tree_type] || '🌳';
+                const name = treeNames[treeData.tree_type] || treeData.tree_type;
+                const watering = treeData.watering_status || {};
+                const visual = deriveWaterVisual(watering);
+                const waterStatus = `<span class="tree-water-indicator ${visual.statusClass}">💧 ${visual.displayLevel}%</span>`;
+                const cooldownHint = visual.isWithered
+                    ? 'Полийте, щоб відновити ріст'
+                    : visual.canWater
+                        ? 'Можна поливати прямо зараз'
+                        : `Полив через ${formatDurationShort(visual.secondsUntilNext || 0)}`;
+                
+                return `
+                    <div class="tree-card">
+                        <div class="tree-header">
+                            <span class="tree-emoji">${emoji}</span>
+                            <div class="tree-info">
+                                <h4>${name}</h4>
+                                <p>Кількість: <b>${treeData.count}</b></p>
+                            </div>
+                        </div>
+                        <div class="tree-watering">
+                            ${waterStatus}
+                            <div class="tree-water-hint ${visual.canWater ? 'success' : ''}">${cooldownHint}</div>
+                        </div>
+                        <button class="water-btn" onclick="waterTree('${treeData.tree_type}')" ${visual.canWater ? '' : 'disabled'}>
+                            💧 Полити
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderTreeField(treesData = []) {
+            const grid = document.getElementById('gardenFieldGrid');
+            if (!grid) return;
+            
+            if (!treesData || treesData.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 60px 20px;">
+                        <div style="font-size: 64px; margin-bottom: 20px; opacity: 0.7; animation: pulse 2s ease-in-out infinite;">🌳</div>
+                        <div style="font-size: 20px; font-weight: 600; color: rgba(255, 255, 255, 0.9); margin-bottom: 12px;">
+                            У вас ще немає дерев
+                        </div>
+                        <div style="font-size: 14px; color: rgba(255, 255, 255, 0.6); margin-bottom: 24px; line-height: 1.6;">
+                            Придбайте своє перше дерево в магазині,<br>
+                            щоб почати заробляти фруктами!
+                        </div>
+                        <button class="primary-btn" onclick="showBuyTreeModal()" style="padding: 12px 24px; font-size: 16px;">
+                            🌱 Перейти до магазину
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            stopWateringCountdown();
+            flatTreeSlots = [];
+            treesData.forEach(tree => {
+                const count = tree.count || 1;
+                for (let i = 0; i < count; i++) {
+                    flatTreeSlots.push({
+                        key: `${tree.tree_type}_${i}`,
+                        tree_type: tree.tree_type,
+                        watering_status: tree.watering_status || {}
+                    });
+                }
+            });
+            if (!flatTreeSlots.length) {
+                grid.innerHTML = '<div class="empty-state">🌱 Тут поки пусто. Додайте дерево в магазині.</div>';
+                return;
+            }
+            grid.innerHTML = flatTreeSlots.map(slot => {
+                const info = treeDisplayData[slot.tree_type] || { name: 'Дерево', emoji: '🌳' };
+                const watering = slot.watering_status || {};
+                const visual = deriveWaterVisual(watering);
+                const baseWater = Math.round(Number(watering.water_level ?? visual.displayLevel));
+                const wateringInterval = Number(watering.watering_interval || 0);
+                const witherThreshold = Number(watering.wither_threshold || 0);
+                const timePassed = Number(watering.time_passed || 0);
+                return `
+                    <article class="garden-slot" data-tree-type="${slot.tree_type}" data-slot-key="${slot.key}"
+                        data-water-level="${visual.displayLevel}" data-display-water="${visual.displayLevel}"
+                        data-base-water="${baseWater}" data-watering-interval="${wateringInterval}"
+                        data-wither-threshold="${witherThreshold}" data-time-passed="${timePassed}"
+                        data-withered="${visual.isWithered}" data-cooldown="${visual.secondsUntilNext || 0}"
+                        data-can-water="${visual.canWater}">
+                        <header class="garden-slot-head">
+                            <div class="garden-slot-title">
+                                <span class="tree-emoji">${info.emoji}</span>
+                                <strong>${info.name}</strong>
+                            </div>
+                            <span class="garden-slot-status ${visual.statusClass}">${visual.statusLabel}</span>
+                        </header>
+                        <div class="garden-slot-meta">
+                            <span class="slot-hint ${visual.canWater ? 'success' : ''}">${visual.hint}</span>
+                        </div>
+                        <div class="garden-slot-water">
+                            <div class="garden-slot-progress ${visual.statusClass}" style="width:${visual.displayLevel}%;"></div>
+                            <span>${visual.displayLevel}%</span>
+                        </div>
+                        <div class="garden-slot-actions">
+                            <button class="mini-btn" data-action="water" data-tree="${slot.tree_type}" ${visual.canWater ? '' : 'disabled'}>💧 Полити</button>
+                            <button class="mini-btn ghost" data-action="upgrade">⬆ Покращити</button>
+                        </div>
+                    </article>
+                `;
+            }).join('');
+            grid.querySelectorAll('[data-action="water"]').forEach(btn => {
+                btn.addEventListener('click', event => {
+                    event.stopPropagation();
+                    waterTree(btn.dataset.tree, btn);
+                });
+            });
+            grid.querySelectorAll('[data-action="upgrade"]').forEach(btn => {
+                btn.addEventListener('click', event => {
+                    event.stopPropagation();
+                    showUpgradeModal();
+                });
+            });
+            grid.querySelectorAll('.garden-slot').forEach(slot => {
+                slot.addEventListener('click', () => selectGardenSlot(slot));
+            });
+            startWateringCountdown();
+        }
+
+        function stopWateringCountdown() {
+            if (gardenTimers.watering) {
+                clearInterval(gardenTimers.watering);
+                gardenTimers.watering = null;
+            }
+        }
+
+        function startWateringCountdown() {
+            stopWateringCountdown();
+            const gridRef = document.getElementById('gardenFieldGrid');
+            if (!gridRef || !gridRef.querySelectorAll('.garden-slot').length) {
+                return;
+            }
+            gardenTimers.watering = setInterval(() => {
+                const grid = document.getElementById('gardenFieldGrid');
+                if (!grid) {
+                    stopWateringCountdown();
+                    return;
+                }
+                grid.querySelectorAll('.garden-slot').forEach(slot => {
+                    let cooldown = Number(slot.dataset.cooldown || 0);
+                    let timePassed = Number(slot.dataset.timePassed || 0) + 1;
+                    slot.dataset.timePassed = timePassed;
+                    if (cooldown > 0) {
+                        cooldown = Math.max(0, cooldown - 1);
+                        slot.dataset.cooldown = cooldown;
+                        if (cooldown === 0) {
+                            slot.dataset.canWater = 'true';
+                        }
+                    }
+                    const watering = {
+                        water_level: Number(slot.dataset.baseWater || slot.dataset.displayWater || 100),
+                        is_withered: slot.dataset.withered === 'true',
+                        seconds_until_next_water: cooldown,
+                        can_water_now: slot.dataset.canWater !== 'false',
+                        watering_interval: Number(slot.dataset.wateringInterval || 0),
+                        time_passed: timePassed,
+                        wither_threshold: Number(slot.dataset.witherThreshold || 0)
+                    };
+                    const visual = deriveWaterVisual(watering);
+                    applyWaterVisual(slot, visual);
+                    if (selectedTreeMeta && selectedTreeMeta.type === slot.dataset.treeType) {
+                        selectedTreeMeta.waterLevel = visual.displayLevel;
+                        selectedTreeMeta.isWithered = visual.isWithered;
+                        selectedTreeMeta.nextWaterSeconds = visual.secondsUntilNext;
+                        selectedTreeMeta.canWater = visual.canWater;
+                        selectedTreeMeta.statusHint = visual.hint;
+                        showSelectionOverlay(selectedTreeMeta, { skipHighlight: true });
+                    }
+                });
+            }, 1000);
+        }
+
+        function updateHarvestIndicator(state) {
+            const label = document.getElementById('harvestStatusLabel');
+            const sub = document.getElementById('harvestStatusSub');
+            if (!label || !sub) return;
+            if (!state) {
+                label.textContent = 'Завантажуємо дані саду...';
+                sub.textContent = 'Перевіряємо час збору';
+                return;
+            }
+            updateHarvestButtons(state);
+            if (state.can_harvest_now) {
+                const ready = state.ready_tree_count || 0;
+                label.textContent = ready > 0
+                    ? `Готово до збору: ${ready} дерев`
+                    : 'Можна збирати врожай';
+                sub.textContent = 'Натисніть «Зібрати врожай», щоб отримати фрукти.';
+            } else {
+                const nextIn = Math.max(0, state.next_ready_in || 0);
+                const readyAt = state.next_ready_at
+                    ? new Date(state.next_ready_at * 1000).toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' })
+                    : null;
+                label.textContent = 'Готуємо врожай...';
+                sub.textContent = nextIn > 0
+                    ? `Наступний збір через ${formatDurationShort(nextIn)}${readyAt ? ` • о ${readyAt}` : ''}`
+                    : 'Ще трішки й можна буде збирати.';
+            }
+        }
+
+        function stopHarvestCountdown() {
+            if (gardenTimers.harvest) {
+                clearInterval(gardenTimers.harvest);
+                gardenTimers.harvest = null;
+            }
+        }
+
+        function startHarvestCountdown(state) {
+            stopHarvestCountdown();
+            if (!state || state.can_harvest_now || !state.next_ready_in) {
+                return;
+            }
+            let remaining = Math.max(0, Number(state.next_ready_in) || 0);
+            gardenTimers.harvest = setInterval(() => {
+                remaining = Math.max(0, remaining - 1);
+                const sub = document.getElementById('harvestStatusSub');
+                if (sub) {
+                    sub.textContent = remaining > 0
+                        ? `Наступний збір через ${formatDurationShort(remaining)}`
+                        : 'Перевіряємо сад...';
+                }
+                if (remaining <= 0) {
+                    stopHarvestCountdown();
+                    loadGarden(true);
+                }
+            }, 1000);
+        }
+
+        function selectGardenSlot(slotElement) {
+            if (!slotElement) return;
+            const grid = document.getElementById('gardenFieldGrid');
+            if (!grid) return;
+            grid.querySelectorAll('.garden-slot.selected').forEach(el => el.classList.remove('selected'));
+            slotElement.classList.add('selected');
+            const waterLevel = Number(slotElement.dataset.displayWater || slotElement.dataset.waterLevel || 100);
+            const meta = {
+                type: slotElement.dataset.treeType,
+                waterLevel,
+                isWithered: slotElement.dataset.withered === 'true',
+                needsWater: waterLevel < 60,
+                nextWaterSeconds: Number(slotElement.dataset.cooldown || 0),
+                canWater: slotElement.dataset.canWater !== 'false',
+                statusHint: slotElement.querySelector('.slot-hint')?.textContent || ''
+            };
+            showSelectionOverlay(meta);
+        }
+
+        function highlightTreeCard(treeType) {
+            const grid = document.getElementById('gardenFieldGrid');
+            if (!grid) return;
+            grid.querySelectorAll('.garden-slot.selected').forEach(el => el.classList.remove('selected'));
+            if (!treeType) return;
+            const target = grid.querySelector(`.garden-slot[data-tree-type="${treeType}"]`);
+            if (target) {
+                target.classList.add('selected');
+                target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+            }
+        }
+
+        function updateGardenSlotWater(treeType, status) {
+            const grid = document.getElementById('gardenFieldGrid');
+            if (!grid || !treeType || !status) return;
+            const slot = grid.querySelector(`.garden-slot[data-tree-type="${treeType}"]`);
+            if (!slot) return;
+            updateSlotWateringMetadata(slot, status);
+            slot.dataset.cooldown = Math.max(0, status.seconds_until_next_water || 0);
+            slot.dataset.canWater = status.can_water_now !== false ? 'true' : 'false';
+            const visual = deriveWaterVisual(status);
+            applyWaterVisual(slot, visual);
+            if (selectedTreeMeta && selectedTreeMeta.type === treeType) {
+                selectedTreeMeta.waterLevel = visual.displayLevel;
+                selectedTreeMeta.isWithered = visual.isWithered;
+                selectedTreeMeta.nextWaterSeconds = visual.secondsUntilNext;
+                selectedTreeMeta.canWater = visual.canWater;
+                selectedTreeMeta.statusHint = visual.hint;
+                showSelectionOverlay(selectedTreeMeta, { skipHighlight: true });
+            }
+        }
+        
+        function renderFruits(fruits) {
+            const container = document.getElementById('fruitsList');
+            if (!fruits || fruits.length === 0) {
+                container.innerHTML = '<p class="empty-message">🍎 У вас немає фруктів. Зберіть урожай!</p>';
+                return;
+            }
+            
+            const fruitEmojis = {
+                'apple': '🍏',
+                'pear': '🍐',
+                'cherry': '🍒',
+                'peach': '🍑',
+                'golden_apple': '🥇'
+            };
+            
+            container.innerHTML = fruits.map(fruit => {
+                const emoji = fruitEmojis[fruit.type] || '🍎';
+                return `
+                    <div class="fruit-card">
+                        <span class="fruit-emoji">${emoji}</span>
+                        <div class="fruit-info">
+                            <span class="fruit-amount">${formatCurrency(fruit.amount)} шт</span>
+                            <span class="fruit-price">${formatCurrency(fruit.price)}₴/шт</span>
+                        </div>
+                        <span class="fruit-value">${formatCurrency(fruit.value)}₴</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function ensureTreePrices(force = false) {
+            if (!force && treePrices) {
+                renderTreeMarket(treePrices.trees || []);
+                return treePrices;
+            }
+            treePrices = await api.get('/api/user/garden/tree_prices');
+            renderTreeMarket(treePrices.trees || []);
+            return treePrices;
+        }
+
+        function renderTreeMarket(trees = []) {
+            const grid = document.getElementById('treeMarketGrid');
+            if (!grid) return;
+            if (!trees.length) {
+                grid.innerHTML = `
+                    <div class="empty-state" style="grid-column: 1 / -1; text-align: center; padding: 40px 20px;">
+                        <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.6; animation: pulse 2s ease-in-out infinite;">🌱</div>
+                        <div style="font-size: 18px; font-weight: 600; color: rgba(255, 255, 255, 0.9); margin-bottom: 8px;">
+                            Магазин порожній
+                        </div>
+                        <div style="font-size: 14px; color: rgba(255, 255, 255, 0.6); line-height: 1.6;">
+                            Наразі немає доступних дерев для покупки.<br>
+                            Спробуйте пізніше або зверніться до адміністратора.
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            grid.innerHTML = trees.map(tree => {
+                const available = !!tree.available;
+                const safeName = JSON.stringify(tree.name);
+                return `
+                    <div class="tree-market-card ${available ? '' : 'card-disabled'}">
+                        <div class="tree-market-top">
+                            <span class="tree-market-emoji">${tree.emoji}</span>
+                            <div>
+                                <div class="tree-market-name">${tree.name}</div>
+                                <div class="tree-market-income">Дохід: ${tree.base_income} фруктів/год</div>
+                            </div>
+                        </div>
+                        <div class="tree-market-price-row">
+                            <div class="tree-market-price">${formatCurrency(tree.price)}₴</div>
+                            <div class="tree-market-availability">${available ? 'Доступно' : '🔒 Потрібен вищий рівень'}</div>
+                        </div>
+                        <button class="primary-btn" ${available ? '' : 'disabled'} onclick="buyTree('${tree.type}', ${safeName})">
+                            ${available ? 'Купити' : 'Недоступно'}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        async function showBuyTreeModal() {
+            try {
+                await ensureTreePrices();
+                const container = document.getElementById('treesForSale');
+                const trees = treePrices?.trees || [];
+                if (!trees || trees.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state" style="text-align: center; padding: 40px 20px;">
+                            <div style="font-size: 64px; margin-bottom: 16px; opacity: 0.6;">🌱</div>
+                            <h3 style="margin: 0 0 12px 0; color: rgba(255,255,255,0.9);">Наразі дерева недоступні</h3>
+                            <p style="color: rgba(255,255,255,0.6); margin: 0;">Спробуйте пізніше або зверніться до адміністратора</p>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = trees.map(tree => {
+                        const disabledAttr = tree.available ? '' : 'disabled';
+                        const disabledText = tree.available ? '' : ' (недоступно для вашого рівня)';
+                        const safeName = JSON.stringify(tree.name);
+                        return `
+                            <div class="tree-sale-card ${tree.available ? '' : 'disabled'}">
+                                <div class="tree-sale-header">
+                                    <span class="tree-emoji">${tree.emoji}</span>
+                                    <div>
+                                        <h4>${tree.name}</h4>
+                                        <p>Дохід: ${tree.base_income} фруктів/год</p>
+                                    </div>
+                                </div>
+                                <div class="tree-sale-price">
+                                    <span>${formatCurrency(tree.price)}₴</span>
+                                    ${disabledText}
+                                </div>
+                                <button class="buy-tree-btn" onclick="buyTree('${tree.type}', ${safeName})" ${disabledAttr}>
+                                    ${tree.available ? 'Купити' : 'Недоступно'}
+                                </button>
+                            </div>
+                        `;
+                    }).join('');
+                }
+                
+                document.getElementById('buyTreeModal').style.display = 'flex';
+            } catch (error) {
+                console.error('Error loading tree prices:', error);
+                safeAlert('Помилка завантаження цін', 'error');
+            }
+        }
+        
+        function closeBuyTreeModal() {
+            document.getElementById('buyTreeModal').style.display = 'none';
+        }
+        
+        async function buyTree(treeType, treeName = '') {
+            try {
+                const confirmLabel = treeName
+                    ? `Підтвердити покупку «${treeName}»?`
+                    : `Підтвердити покупку дерева?`;
+                safeConfirm(
+                    confirmLabel,
+                    async (confirmed) => {
+                        if (confirmed) {
+                            try {
+                                const result = await api.post('/api/user/garden/buy_tree', {
+                                    tree_type: treeType
+                                });
+                                
+                                const successTitle = treeName ? `✅ ${treeName} куплено!` : '✅ Дерево куплено успішно!';
+                                showToast(`${successTitle} Баланс: ${formatCurrency(result.new_balance)}₴`, 'success');
+                                
+                                // Добавляем событие в ленту трансляций
+                                addGardenEvent('purchase', {
+                                    treeType: treeType,
+                                    treeName: treeName,
+                                    price: result.price || 0
+                                });
+                                
+                                closeBuyTreeModal();
+                                loadGarden(true); // Оновлюємо дані
+                            } catch (error) {
+                                console.error('Error buying tree:', error);
+                                const errorMessage = error.message || 'Помилка покупки дерева';
+                                const errorDetails = error.response?.data?.error || '';
+                                
+                                // Проверяем если это ошибка недостаточного баланса
+                                if (errorMessage.includes('баланс') || errorMessage.includes('недостатньо') || errorMessage.toLowerCase().includes('balance') || errorMessage.toLowerCase().includes('insufficient')) {
+                                    showErrorModal(
+                                        '💰 Недостатньо коштів',
+                                        'На вашому балансі недостатньо коштів для покупки дерева',
+                                        errorDetails || 'Поповніть баланс та спробуйте ще раз'
+                                    );
+                                } else {
+                                    showErrorModal(
+                                        '❌ Помилка покупки',
+                                        errorMessage,
+                                        errorDetails || 'Спробуйте пізніше'
+                                    );
+                                }
+                            }
+                        }
+                    }
+                );
+            } catch (error) {
+                console.error('Error:', error);
+                showToast(error.message || 'Сталася помилка', 'error');
+            }
+        }
+        
+        async function showSellFruitsModal() {
+            try {
+                if (!gardenData) {
+                    await loadGarden();
+                }
+                
+                const container = document.getElementById('fruitsForSale');
+                const fruits = gardenData.fruits || [];
+                
+                if (fruits.length === 0) {
+                    container.innerHTML = '<p class="empty-message">Немає фруктів для продажу</p>';
+                } else {
+                    container.innerHTML = fruits.map(fruit => {
+                        const fruitEmojis = {
+                            'apple': '🍏', 'pear': '🍐', 'cherry': '🍒', 'peach': '🍑', 'golden_apple': '🥇'
+                        };
+                        const emoji = fruitEmojis[fruit.type] || '🍎';
+                        
+                        return `
+                            <div class="fruit-sale-card">
+                                <span class="fruit-emoji">${emoji}</span>
+                                <div class="fruit-sale-info">
+                                    <span>${formatCurrency(fruit.amount)} шт</span>
+                                    <span>${formatCurrency(fruit.price)}₴/шт</span>
+                                </div>
+                                <button class="sell-fruit-btn" onclick="sellFruit('${fruit.type}', ${fruit.amount})">
+                                    Продати
+                                </button>
+                            </div>
+                        `;
+                    }).join('');
+                }
+                
+                document.getElementById('sellFruitsModal').style.display = 'flex';
+            } catch (error) {
+                console.error('Error loading fruits for sale:', error);
+                safeAlert('Помилка завантаження фруктів', 'error');
+            }
+        }
+        
+        function closeSellFruitsModal() {
+            document.getElementById('sellFruitsModal').style.display = 'none';
+        }
+        
+        async function sellFruit(fruitType, maxAmount) {
+            const amount = prompt(`Введіть кількість для продажу (макс. ${formatCurrency(maxAmount)}):`);
+            if (!amount) return;
+            
+            const amountNum = parseFloat(amount.replace(',', '.'));
+            if (isNaN(amountNum) || amountNum <= 0 || amountNum > maxAmount) {
+                safeAlert('Невірна кількість!', 'error');
+                return;
+            }
+            
+            try {
+                const result = await api.post('/api/user/garden/sell_fruits', {
+                    fruit_type: fruitType,
+                    amount: amountNum
+                });
+                
+                showToast(`Продано ${formatCurrency(amountNum)} шт • +${formatCurrency(result.revenue)}₴`, 'success');
+                closeSellFruitsModal();
+                loadGarden(true); // Оновлюємо дані
+            } catch (error) {
+                console.error('Error selling fruits:', error);
+                showToast(error.message || 'Помилка продажу фруктів', 'error');
+            }
+        }
+        
+        async function harvestFruits() {
+            const harvestButtons = getHarvestButtons();
+            harvestButtons.forEach(btn => btn.disabled = true);
+            const harvestBtn = document.querySelector('.btn-harvest');
+            if (harvestBtn) harvestBtn.classList.add('loading');
+            try {
+                const result = await api.harvestFruits();
+                if (result.success) {
+                    const summary = (result.harvested || []).map(item => `${item.emoji || '🍎'} ${item.fruit_name} × ${formatCurrency(item.amount)}`).join(', ');
+                    showToast(summary || 'Урожай зібрано', 'success');
+                    
+                    // Добавляем событие в ленту трансляций
+                    addGardenEvent('harvest', {
+                        summary: summary,
+                        harvested: result.harvested || []
+                    });
+                } else {
+                    showToast(result.message || 'Ще зарано для збору', 'warning');
+                }
+                loadGarden(true);
+            } catch (error) {
+                console.error('Error harvesting:', error);
+                showToast(error.message || 'Помилка збору урожаю', 'error');
+            } finally {
+                if (harvestBtn) harvestBtn.classList.remove('loading');
+                updateHarvestButtons(gardenData?.harvest_state);
+            }
+        }
+        
+        async function waterTree(treeType, triggerBtn = null) {
+            if (!treeType) return;
+            if (triggerBtn) {
+                triggerBtn.disabled = true;
+                triggerBtn.classList.add('loading');
+            }
+            
+            // Анимация полива в 2D
+            const treeEl = document.querySelector(`.garden-2d-tree[data-tree-type="${treeType}"]`);
+            if (treeEl) {
+                treeEl.classList.add('watering-animation');
+                setTimeout(() => {
+                    treeEl.classList.remove('watering-animation');
+                }, 1000);
+            }
+            
+            try {
+                const result = await api.waterTree(treeType);
+                showToast(result.message || 'Дерево полито', 'success');
+                
+                // Добавляем событие в ленту трансляций
+                addGardenEvent('water', {
+                    treeType: treeType,
+                    message: result.message || 'Дерево полито'
+                });
+                
+                if (result.watering_status) {
+                    updateGardenSlotWater(treeType, result.watering_status);
+                }
+                loadGarden(true);
+            } catch (error) {
+                console.error('Error watering tree:', error);
+                showToast(error.message || 'Помилка поливу', 'error');
+            } finally {
+                if (triggerBtn) {
+                    triggerBtn.disabled = false;
+                    triggerBtn.classList.remove('loading');
+                }
+            }
+        }
+        
+        async function showUpgradeModal() {
+            try {
+                if (!gardenData) {
+                    await loadGarden();
+                }
+                
+                const currentLevel = gardenData.garden_level || 1;
+                const nextLevel = (currentLevel || 1) + 1;
+                const upgradePrice = gardenData.next_level_price;
+                const nextLevelInfo = gardenData.next_level_info || {
+                    name: `Рівень ${nextLevel}`,
+                    description: `Підвищення до рівня ${nextLevel} дасть нові можливості`,
+                    bonus_percent: 0,
+                    commission_percent: 15
+                };
+                
+                const container = document.getElementById('upgradeInfo');
+                const currentBalance = gardenData.balance || 0;
+                const canAfford = currentBalance >= upgradePrice;
+                
+                container.innerHTML = `
+                    <div class="upgrade-info">
+                        <h3>Рівень ${currentLevel || 1} → Рівень ${nextLevel}</h3>
+                        <p><b>${nextLevelInfo.name}</b></p>
+                        <div style="padding: 16px; background: ${canAfford ? 'rgba(76,175,80,0.1)' : 'rgba(245,87,108,0.1)'}; border-radius: 12px; margin: 16px 0; border: 1px solid ${canAfford ? 'rgba(76,175,80,0.3)' : 'rgba(245,87,108,0.3)'};">
+                            <p style="margin: 0 0 8px 0; color: rgba(255,255,255,0.9);">Вартість: <strong style="color: ${canAfford ? '#4CAF50' : '#F5576C'}; font-size: 20px;">${formatCurrency(upgradePrice)}₴</strong></p>
+                            <p style="margin: 0; color: rgba(255,255,255,0.7); font-size: 14px;">Ваш баланс: <strong>${formatCurrency(currentBalance)}₴</strong></p>
+                            ${!canAfford ? `<p style="margin: 8px 0 0 0; color: #F5576C; font-size: 13px;">⚠️ Недостатньо коштів. Потрібно ще: ${formatCurrency(upgradePrice - currentBalance)}₴</p>` : ''}
+                        </div>
+                        <p style="color: rgba(255,255,255,0.8);">${nextLevelInfo.description}</p>
+                        <div style="display: flex; gap: 16px; margin: 16px 0;">
+                            <div style="flex: 1; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 12px; text-align: center;">
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-bottom: 4px;">Бонус</div>
+                                <div style="font-size: 18px; font-weight: 600; color: #4CAF50;">+${nextLevelInfo.bonus_percent}%</div>
+                            </div>
+                            <div style="flex: 1; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 12px; text-align: center;">
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.7); margin-bottom: 4px;">Комісія</div>
+                                <div style="font-size: 18px; font-weight: 600; color: rgba(255,255,255,0.9);">${nextLevelInfo.commission_percent}%</div>
+                            </div>
+                        </div>
+                        <button class="upgrade-confirm-btn" onclick="confirmUpgrade()" ${!canAfford ? 'disabled style="opacity: 0.5; cursor: not-allowed;"' : ''}>
+                            ${canAfford ? '✅ Підтвердити апгрейд' : '❌ Недостатньо коштів'}
+                        </button>
+                    </div>
+                `;
+                
+                document.getElementById('upgradeModal').style.display = 'flex';
+            } catch (error) {
+                console.error('Error loading upgrade info:', error);
+                safeAlert('Помилка завантаження інформації', 'error');
+            }
+        }
+        
+        function closeUpgradeModal() {
+            document.getElementById('upgradeModal').style.display = 'none';
+        }
+        
+        async function confirmUpgrade() {
+            try {
+                const result = await api.post('/api/user/garden/upgrade_level', {});
+                
+                showToast(`Рівень сада ${result.new_level}. Баланс: ${formatCurrency(result.new_balance)}₴`, 'success');
+                closeUpgradeModal();
+                loadGarden(true); // Оновлюємо дані
+            } catch (error) {
+                console.error('Error upgrading level:', error);
+                const errorMessage = error.message || 'Помилка підвищення рівня';
+                const errorDetails = error.response?.data?.error || '';
+                
+                // Проверяем если это ошибка недостаточного баланса
+                if (errorMessage.includes('баланс') || errorMessage.includes('недостатньо') || errorMessage.toLowerCase().includes('balance')) {
+                    showErrorModal(
+                        '💰 Недостатньо коштів',
+                        'На вашому балансі недостатньо коштів для підвищення рівня',
+                        `Потрібно: ${gardenData?.next_level_price || '?'}₴`
+                    );
+                } else {
+                    showErrorModal(
+                        '❌ Помилка підвищення рівня',
+                        errorMessage,
+                        errorDetails || 'Спробуйте пізніше'
+                    );
+                }
+            }
+        }
+        
+        function showErrorModal(title, message, details = '') {
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.cssText = 'display: flex; position: fixed; inset: 0; z-index: 10000; align-items: center; justify-content: center; background: rgba(0,0,0,0.75); backdrop-filter: blur(10px);';
+            modal.innerHTML = `
+                <div class="modal-content" style="background: linear-gradient(140deg, rgba(245,87,108,0.15), rgba(20,30,60,0.95)); border-radius: 24px; padding: 32px; max-width: 420px; width: 90%; box-shadow: 0 30px 80px rgba(245,87,108,0.3); border: 1px solid rgba(245,87,108,0.3);">
+                    <div style="text-align: center; padding: 10px;">
+                        <div style="font-size: 64px; margin-bottom: 20px; filter: drop-shadow(0 8px 16px rgba(245,87,108,0.5));">${title.includes('❌') ? '❌' : title.includes('💰') ? '💰' : '⚠️'}</div>
+                        <h3 style="margin: 0 0 16px 0; font-size: 24px; font-weight: 600; color: rgba(255,255,255,0.95);">${title.replace('❌ ', '').replace('⚠️ ', '').replace('💰 ', '')}</h3>
+                        <p style="color: rgba(255,255,255,0.9); font-size: 16px; margin-bottom: ${details ? '12px' : '24px'}; line-height: 1.6;">${message}</p>
+                        ${details ? `<p style="color: rgba(255,255,255,0.6); font-size: 14px; margin-bottom: 24px;">${details}</p>` : ''}
+                        <button onclick="this.closest('.modal').remove()" style="padding: 12px 24px; background: linear-gradient(135deg, rgba(245,87,108,0.8), rgba(245,87,108,0.6)); border: none; border-radius: 12px; color: white; cursor: pointer; width: 100%; font-weight: 600; font-size: 16px; transition: all 0.2s; box-shadow: 0 4px 16px rgba(245,87,108,0.4);">
+                            Зрозуміло
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.remove();
+            });
+        }
+        
+        function formatCurrency(amount) {
+            return parseFloat(amount || 0).toFixed(2);
+        }
+
+        function formatDurationShort(seconds) {
+            const totalSeconds = Math.max(0, Math.floor(Number(seconds) || 0));
+            if (totalSeconds <= 0) return 'зараз';
+            const minutes = Math.floor(totalSeconds / 60);
+            if (minutes >= 60) {
+                const hours = Math.floor(minutes / 60);
+                const remainingMinutes = minutes % 60;
+                if (hours >= 24) {
+                    const days = Math.floor(hours / 24);
+                    return remainingMinutes ? `${days} дн ${hours % 24} год` : `${days} дн`;
+                }
+                return remainingMinutes ? `${hours} год ${remainingMinutes} хв` : `${hours} год`;
+            }
+            if (minutes > 0) {
+                const sec = totalSeconds % 60;
+                return sec ? `${minutes} хв ${sec} с` : `${minutes} хв`;
+            }
+            return `${totalSeconds} с`;
+        }
+
+        function ensureToastStack() {
+            if (toastReady) return;
+            toastReady = true;
+            const container = document.getElementById('toastContainer');
+            if (container) {
+                container.classList.add('toast-stack');
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            ensureToastStack();
+            const container = document.getElementById('toastContainer');
+            if (!container) return;
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            requestAnimationFrame(() => toast.classList.add('visible'));
+            setTimeout(() => {
+                toast.classList.remove('visible');
+                toast.addEventListener('transitionend', () => toast.remove());
+            }, 4200);
+        }
+        
+        const treeDisplayData = {
+            apple: { name: 'Яблуня', emoji: '🍏' },
+            pear: { name: 'Груша', emoji: '🍐' },
+            cherry: { name: 'Вишня', emoji: '🍒' },
+            peach: { name: 'Персик', emoji: '🍑' }
+        };
+
+        function showSelectionOverlay(meta, options = {}) {
+            const overlay = document.getElementById('garden3dOverlay');
+            const buyBtn = document.getElementById('garden3dBuyBtn');
+            if (!overlay) return;
+            if (!meta) {
+                highlightTreeCard(null);
+                overlay.style.display = 'none';
+                selectedTreeMeta = null;
+                if (buyBtn) {
+                    buyBtn.dataset.treeType = '';
+                    buyBtn.dataset.treeName = '';
+                    buyBtn.textContent = '🛒 Купити ще';
+                }
+                return;
+            }
+            selectedTreeMeta = meta;
+            if (!options.skipHighlight) {
+                highlightTreeCard(meta.type);
+            }
+            if (!meta.statusHint) {
+                const pseudoVisual = deriveWaterVisual({
+                    water_level: meta.waterLevel,
+                    is_withered: meta.isWithered,
+                    seconds_until_next_water: meta.nextWaterSeconds,
+                    can_water_now: meta.canWater
+                });
+                meta.statusHint = pseudoVisual.hint;
+            }
+            const info = treeDisplayData[meta.type] || { name: 'Дерево', emoji: '🌳' };
+            document.getElementById('garden3dEmoji').textContent = info.emoji;
+            document.getElementById('garden3dTitle').textContent = info.name;
+            let statusText = '';
+            if (meta.statusHint) {
+                statusText = meta.statusHint;
+            } else if (meta.isWithered) {
+                statusText = '⚠️ Потребує поливу';
+            } else if (!meta.canWater) {
+                statusText = `⏳ Полив через ${formatDurationShort(meta.nextWaterSeconds)}`;
+            } else if (meta.needsWater) {
+                statusText = `💧 ${meta.waterLevel}% • можна поливати`;
+            } else {
+                statusText = `✅ Здорове (${meta.waterLevel}%)`;
+            }
+            document.getElementById('garden3dStatus').textContent = statusText;
+            overlay.style.display = 'block';
+            const waterBtn = document.getElementById('garden3dWaterBtn');
+            if (waterBtn) {
+                waterBtn.disabled = !meta.canWater;
+            }
+            if (buyBtn) {
+                buyBtn.dataset.treeType = meta.type;
+                buyBtn.dataset.treeName = info.name;
+                buyBtn.textContent = `🛒 Купити ${info.name}`;
+            }
+        }
+
+        // Упрощенная система событий (без ленты трансляций)
+        function addGardenEvent(type, data = {}) {
+            // Просто логируем для отладки, без визуальной ленты
+            console.log('[Garden Event]', type, data);
+        }
+
+        // Рендеринг 2D сада
+        function renderGarden2D(treesData = []) {
+            const container = document.getElementById('garden2dTrees');
+            if (!container) return;
+            
+            if (!treesData || treesData.length === 0) {
+                container.innerHTML = `
+                    <div class="garden-2d-empty">
+                        <div class="garden-2d-empty-icon">🌳</div>
+                        <div class="garden-2d-empty-text">У вас ще немає дерев</div>
+                        <button class="primary-btn" onclick="showBuyTreeModal()" style="margin-top: 16px; padding: 12px 24px;">
+                            🌱 Купити дерево
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            const treeEmojis = {
+                'apple': '🍎',
+                'pear': '🍐',
+                'cherry': '🍒',
+                'peach': '🍑'
+            };
+            
+            container.innerHTML = treesData.map((tree, index) => {
+                const emoji = treeEmojis[tree.tree_type] || '🌳';
+                const watering = tree.watering_status || {};
+                const visual = deriveWaterVisual(watering);
+                const isWithered = visual.isWithered;
+                const waterLevel = visual.displayLevel;
+                
+                // Красивое позиционирование деревьев
+                const treesPerRow = 3;
+                const spacing = 100 / (treesPerRow + 1);
+                const col = index % treesPerRow;
+                const row = Math.floor(index / treesPerRow);
+                const leftPosition = spacing * (col + 1);
+                const topPosition = 35 + row * 30;
+                
+                return `
+                    <div class="garden-2d-tree" 
+                         style="left: ${leftPosition}%; top: ${topPosition}%; --tree-index: ${index};"
+                         data-tree-type="${tree.tree_type}"
+                         data-water-level="${waterLevel}"
+                         data-withered="${isWithered}">
+                        <div class="garden-2d-tree-emoji ${isWithered ? 'withered' : ''}">
+                            ${emoji}
+                        </div>
+                        <div class="garden-2d-tree-water" style="--water-level: ${waterLevel}%;"></div>
+                        <div class="garden-2d-tree-info">
+                            <span class="garden-2d-tree-level">${waterLevel}%</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            // Добавляем обработчики кликов
+            container.querySelectorAll('.garden-2d-tree').forEach(treeEl => {
+                treeEl.addEventListener('click', () => {
+                    const treeType = treeEl.dataset.treeType;
+                    const tree = treesData.find(t => t.tree_type === treeType);
+                    if (tree) {
+                        showTreeDetailsModal(tree);
+                    }
+                });
+            });
+        }
+        
+        function showTreeDetailsModal(tree) {
+            const watering = tree.watering_status || {};
+            const visual = deriveWaterVisual(watering);
+            const treeNames = {
+                'apple': 'Яблуня',
+                'pear': 'Груша',
+                'cherry': 'Вишня',
+                'peach': 'Персик'
+            };
+            const treeEmojis = {
+                'apple': '🍎',
+                'pear': '🍐',
+                'cherry': '🍒',
+                'peach': '🍑'
+            };
+            const name = treeNames[tree.tree_type] || tree.tree_type;
+            const emoji = treeEmojis[tree.tree_type] || '🌳';
+            
+            // Создаем красивое модальное окно
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+            modal.style.cssText = 'display: flex; position: fixed; inset: 0; z-index: 10000; align-items: center; justify-content: center; background: rgba(0,0,0,0.75); backdrop-filter: blur(10px);';
+            modal.innerHTML = `
+                <div class="modal-content" style="background: linear-gradient(140deg, rgba(15,23,42,0.98), rgba(20,30,60,0.95)); border-radius: 24px; padding: 32px; max-width: 420px; width: 90%; box-shadow: 0 30px 80px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="text-align: center; padding: 10px;">
+                        <div style="font-size: 64px; margin-bottom: 20px; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.3));">${emoji}</div>
+                        <h3 style="margin: 0 0 16px 0; font-size: 24px; font-weight: 600; color: rgba(255,255,255,0.95);">${name}</h3>
+                        <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                                <span style="color: rgba(255,255,255,0.7); font-size: 14px;">Вода:</span>
+                                <strong style="color: #4FC3F7; font-size: 18px; text-shadow: 0 0 10px rgba(79,195,247,0.5);">${visual.displayLevel}%</strong>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);">
+                                <span style="color: rgba(255,255,255,0.7); font-size: 14px;">Кількість:</span>
+                                <strong style="color: #4CAF50; font-size: 18px; text-shadow: 0 0 10px rgba(76,175,80,0.5);">${tree.count || 1}</strong>
+                            </div>
+                        </div>
+                        ${visual.canWater ? `
+                            <button class="primary-btn" onclick="waterTree('${tree.tree_type}'); this.closest('.modal').remove();" style="margin-top: 8px; width: 100%; padding: 14px; font-size: 16px; font-weight: 600; border-radius: 12px; background: linear-gradient(135deg, #4FC3F7, #29B6F6); border: none; color: white; cursor: pointer; box-shadow: 0 4px 16px rgba(79,195,247,0.4); transition: all 0.2s;">
+                                💧 Полити
+                            </button>
+                        ` : `
+                            <div style="padding: 14px; background: rgba(255,193,7,0.15); border-radius: 12px; color: rgba(255,255,255,0.9); border: 1px solid rgba(255,193,7,0.3);">
+                                ⏱ Полив через ${formatDurationShort(visual.secondsUntilNext || 0)}
+                            </div>
+                        `}
+                        <button onclick="this.closest('.modal').remove()" style="margin-top: 16px; padding: 10px 20px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; color: rgba(255,255,255,0.9); cursor: pointer; width: 100%; font-weight: 500; transition: all 0.2s;">
+                            Закрити
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.remove();
+            });
+        }
+
+        // Создание декоративных элементов фона (только частицы, без облаков и солнца)
+        function initGardenDecorations() {
+            const particles = document.getElementById('garden2dParticles');
+            if (!particles) return;
+            
+            // Создаем частицы (снежинки/листья/звездочки)
+            const particleSymbols = ['❄', '❅', '❆', '🍃', '🌿', '✨', '⭐'];
+            function createParticle() {
+                const particle = document.createElement('div');
+                particle.className = 'garden-2d-particle';
+                particle.textContent = particleSymbols[Math.floor(Math.random() * particleSymbols.length)];
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.setProperty('--drift', (Math.random() * 200 - 100));
+                particle.style.animationDelay = Math.random() * 3 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                particle.style.fontSize = (14 + Math.random() * 10) + 'px';
+                particles.appendChild(particle);
+                
+                setTimeout(() => {
+                    if (particle.parentNode) {
+                        particle.remove();
+                    }
+                }, 25000);
+            }
+            
+            // Создаем начальные частицы
+            for (let i = 0; i < 15; i++) {
+                setTimeout(createParticle, i * 500);
+            }
+            
+            // Постоянно создаем новые частицы
+            setInterval(createParticle, 3000);
+        }
+
+        // Загружаем данные при загрузке страницы
+        document.addEventListener('DOMContentLoaded', () => {
+            ensureToastStack();
+            initGardenDecorations();
+            loadGarden();
+            startGardenAutoRefresh();
+            ensureTreePrices().catch(err => console.warn('Tree prices not loaded', err));
+        });
+    </script>
+    <style>
+        .garden-level-card {
+            background: var(--primary-gradient);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-md);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .level-info h3 {
+            margin: 0 0 4px 0;
+            font-size: 20px;
+        }
+        
+        .level-name {
+            color: rgba(255, 255, 255, 0.9);
+            margin: 4px 0;
+        }
+        
+        .level-stats {
+            display: flex;
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-xs);
+            font-size: 14px;
+        }
+        
+        .upgrade-btn {
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .upgrade-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .trees-list, .fruits-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+        
+        .tree-card, .fruit-card {
+            background: var(--bg-card);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-md);
+            box-shadow: var(--shadow-sm);
+            border-left: 4px solid var(--accent);
+        }
+        
+        .tree-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-xs);
+        }
+        
+        .tree-emoji {
+            font-size: 32px;
+        }
+        
+        .tree-info h4 {
+            margin: 0;
+            font-size: 18px;
+        }
+        
+        .tree-watering {
+            margin: var(--spacing-xs) 0;
+            padding: var(--spacing-xs) 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tree-water-indicator {
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tree-water-indicator.success {
+            color: #00f2fe;
+        }
+
+        .tree-water-indicator.warn {
+            color: #fee140;
+        }
+
+        .tree-water-indicator.danger {
+            color: #f5576c;
+        }
+
+        .tree-water-hint {
+            display: block;
+            font-size: 12px;
+            margin-top: 4px;
+            color: rgba(255, 255, 255, 0.65);
+        }
+
+        .tree-water-hint.success {
+            color: #9ccc65;
+        }
+        
+        .water-btn {
+            margin-top: var(--spacing-xs);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            background: var(--bg-card);
+            border: 2px solid #4facfe;
+            border-radius: 8px;
+            color: #4facfe;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .water-btn:hover {
+            background: #4facfe;
+            color: white;
+        }
+
+        .water-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-color: rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        [data-harvest-btn].is-disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .fruit-card {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+        
+        .fruit-emoji {
+            font-size: 28px;
+        }
+        
+        .fruit-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .fruit-amount {
+            font-weight: 600;
+        }
+        
+        .fruit-price {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .fruit-value {
+            font-weight: 700;
+            color: var(--accent);
+            font-size: 18px;
+        }
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: var(--spacing-md);
+        }
+        
+        .modal-content {
+            background: var(--bg-card);
+            border-radius: var(--border-radius);
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-md);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .modal-header h2 {
+            margin: 0;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 32px;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            line-height: 32px;
+        }
+        
+        .modal-body {
+            padding: var(--spacing-md);
+        }
+        
+        .trees-for-sale, .fruits-for-sale {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+        
+        .tree-sale-card, .fruit-sale-card {
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: var(--spacing-md);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+        
+        .tree-sale-card.disabled {
+            opacity: 0.5;
+        }
+        
+        .tree-sale-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            flex: 1;
+        }
+        
+        .tree-sale-price {
+            font-weight: 700;
+            color: var(--accent);
+            font-size: 18px;
+        }
+        
+        .buy-tree-btn, .sell-fruit-btn {
+            padding: var(--spacing-xs) var(--spacing-md);
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .buy-tree-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .fruit-sale-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .upgrade-confirm-btn {
+            width: 100%;
+            padding: var(--spacing-md);
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: var(--spacing-md);
+        }
+    </style>
+    </div>
+</body>
+</html>
+
+

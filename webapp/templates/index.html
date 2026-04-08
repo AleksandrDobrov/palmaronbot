@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>INVESTING PALMARON BOT</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Шапка с аватаркой -->
+        <header class="app-header">
+            <div class="header-decoration header-decoration-left"></div>
+            <div class="header-decoration header-decoration-right"></div>
+            <div class="header-content">
+                <div class="user-avatar" id="userAvatar">
+                    <div class="avatar-placeholder">👤</div>
+                    <div class="avatar-glow"></div>
+                </div>
+                <div class="user-info">
+                    <div class="user-info-main">
+                        <h1 class="user-name" id="userName">Завантаження...</h1>
+                        <div class="user-stats">
+                            <span class="user-id" id="userId">ID: —</span>
+                            <span class="user-refs" id="userRefs" style="display: none;">👥 <span id="refCount">0</span></span>
+                        </div>
+                    </div>
+                    <div class="user-finance">
+                        <div class="finance-item" id="balanceItem" style="display: none;">
+                            <span class="finance-label">Баланс</span>
+                            <span class="user-balance" id="userBalance">0 UAH</span>
+                        </div>
+                        <div class="finance-item" id="depositsItem" style="display: none;">
+                            <span class="finance-label">Депозити</span>
+                            <span class="user-deposits" id="userDeposits">0 UAH</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="header-snowflakes" aria-hidden="true">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <div class="notifications-icon" id="notificationsIcon" onclick="handleNotificationClick(event)">
+                <span class="notifications-bell">🔔</span>
+                <span class="notifications-badge" id="notificationsBadge" style="display: none;">0</span>
+            </div>
+        </header>
+
+        <!-- Головний контент -->
+        <main class="main-content home-main">
+            <div class="main-content-inner">
+            <section class="cabinet-section hero-overview">
+                <div class="hero-grid">
+                    <div class="glass-panel hero-card hero-profile-card">
+                        <div class="hero-profile-top">
+                            <div class="profile-avatar" id="profileAvatar">
+                                <div class="avatar-placeholder">👤</div>
+                            </div>
+                            <div class="hero-profile-text">
+                                <span class="profile-badge" id="profileBadge">Інвестор</span>
+                                <h2 id="profileName">Завантаження...</h2>
+                                <p class="profile-id">ID: <span id="profileId">—</span></p>
+                                <p class="profile-username" id="profileUsername" style="display:none;"></p>
+                            </div>
+                        </div>
+                        <div class="hero-profile-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Баланс</span>
+                                <span class="stat-value" id="balanceAmount">0₴</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Виведено</span>
+                                <span class="stat-value" id="withdrawnAmount">0₴</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Депозити</span>
+                                <span class="stat-value" id="depositsAmount">0₴</span>
+                            </div>
+                        </div>
+                        <div class="hero-profile-meta">
+                            <div class="meta-item">
+                                <span>Дата реєстрації</span>
+                                <strong id="profileJoined">—</strong>
+                            </div>
+                            <div class="meta-item">
+                                <span>Остання активність</span>
+                                <strong id="profileLastActive">—</strong>
+                            </div>
+                        </div>
+                        <div class="hero-profile-actions">
+                            <button class="primary-btn" id="heroPrimaryCta" onclick="window.location.href='/garden'">Відкрити сад</button>
+                            <button class="ghost-btn" id="heroSecondaryCta" onclick="document.getElementById('mainMenuSection').scrollIntoView({behavior: 'smooth', block: 'start'});">До меню</button>
+                        </div>
+                    </div>
+                    <div class="glass-panel hero-card hero-banner">
+                        <div class="hero-badge" id="heroBadge">🚀 INVESTING TEAM</div>
+                        <h2 class="hero-title" id="heroTitle">INVESTING PALMARON BOT</h2>
+                        <p class="hero-subtitle" id="heroSubtitle">Ласкаво просимо до світу інвестицій!</p>
+                        <div class="hero-actions">
+                            <button class="primary-btn" onclick="window.location.href='/cabinet'">Відкрити кабінет</button>
+                            <button class="ghost-btn" onclick="window.location.href='/info'">Про платформу</button>
+                        </div>
+                    </div>
+                    <div class="hero-side-column">
+                        <div class="glass-panel channel-card">
+                            <p class="section-label">Офіційні оновлення</p>
+                            <h3 id="channelTitle">Офіційний канал</h3>
+                            <p id="channelDescription">Приєднуйтесь, щоб першими отримувати інсайти та бонуси.</p>
+                            <button class="primary-btn" id="channelButton">Відкрити канал</button>
+                        </div>
+                        <div class="glass-panel news-card">
+                            <div class="news-card-header">
+                                <div>
+                                    <p class="section-label" id="newsWidgetTitle">Новини проєкту</p>
+                                    <span class="section-hint" id="newsWidgetHint">Слідкуйте за ключовими оновленнями</span>
+                                </div>
+                                <div class="news-header-actions">
+                                    <span class="news-counter" id="newsCounter" style="display:none;"></span>
+                                    <button class="ghost-btn" onclick="window.brandingNewsManager?.openNewsModal()">Усі новини</button>
+                                </div>
+                            </div>
+                            <div class="news-list" id="newsWidgetList">
+                                <p class="empty-message">Новини завантажуються...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="cabinet-section" id="mainMenuSection">
+                <h2 class="section-title" style="margin-bottom: var(--spacing-md);">Меню розділів</h2>
+                <div class="menu-grid">
+                <!-- Кабінет -->
+                <a href="/cabinet" class="menu-card card-cabinet">
+                    <div class="card-icon">📑</div>
+                    <div class="card-title">Кабінет</div>
+                    <div class="card-subtitle">Профіль та фінанси</div>
+                </a>
+
+                <!-- Подарунок -->
+                <a href="/gift" class="menu-card card-gift">
+                    <div class="card-icon">🎁</div>
+                    <div class="card-title">Подарунок</div>
+                    <div class="card-subtitle">Отримайте бонус</div>
+                </a>
+
+                <!-- Інформація -->
+                <a href="/info" class="menu-card card-info">
+                    <div class="card-icon">ℹ️</div>
+                    <div class="card-title">Інформація</div>
+                    <div class="card-subtitle">Про бота</div>
+                </a>
+
+                <!-- Сад -->
+                <a href="/garden" class="menu-card card-garden">
+                    <div class="card-icon">👨‍🌾</div>
+                    <div class="card-title">Сад</div>
+                    <div class="card-subtitle">Вирощуйте дерева</div>
+                </a>
+
+                <!-- Завдання -->
+                <a href="/tasks" class="menu-card card-tasks">
+                    <div class="card-icon">📋</div>
+                    <div class="card-title">Завдання</div>
+                    <div class="card-subtitle">Виконуйте квести</div>
+                </a>
+
+                <!-- Промокод -->
+                <a href="/promo" class="menu-card card-promo">
+                    <div class="card-icon">🎟️</div>
+                    <div class="card-title">Промокод</div>
+                    <div class="card-subtitle">Активація коду</div>
+                </a>
+
+                <!-- Інвестиційний офіс -->
+                <a href="/office" class="menu-card card-office">
+                    <div class="card-icon">💼</div>
+                    <div class="card-title">Інвестиційний офіс</div>
+                    <div class="card-subtitle">Інвестиції та прибуток</div>
+                </a>
+
+                <!-- Адмінка (только для админов) -->
+                <a href="/admin" class="menu-card card-admin" id="adminCard" style="display: none;">
+                    <div class="card-icon">🛠</div>
+                    <div class="card-title">Адмінка</div>
+                    <div class="card-subtitle">Панель управління</div>
+                </a>
+                </div>
+            </section>
+            </div>
+        </main>
+
+        <!-- Футер -->
+        <footer class="app-footer">
+            <p>© 2024 INVESTING PALMARON BOT</p>
+        </footer>
+    </div>
+
+    {% include 'support-widget.html' %}
+    {% include 'notifications-modal.html' %}
+
+    <script src="{{ url_for('static', filename='js/telegram-webapp.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/support.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/snowflakes.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/animations.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/branding-news.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            window.brandingNewsManager = initBrandingNews({
+                limit: 4,
+                modalId: 'newsModal',
+                modalBody: 'newsModalBody'
+            });
+        });
+
+        window.addEventListener('userDataLoaded', (event) => {
+            const data = event.detail || {};
+            hydrateHomeHero(data);
+            if (window.brandingNewsManager && data.branding) {
+                window.brandingNewsManager.setBrandingData(data.branding);
+                const unreadNews = data.news && typeof data.news.unread_count !== 'undefined'
+                    ? data.news.unread_count
+                    : 0;
+                window.brandingNewsManager.setUnreadCount(unreadNews);
+            }
+        });
+
+        function hasAdminFlag(value) {
+            return value === true || value === 1 || value === '1' || value === 'true';
+        }
+
+        function closeNewsModal() {
+            if (window.brandingNewsManager && typeof window.brandingNewsManager.closeModal === 'function') {
+                window.brandingNewsManager.closeModal();
+            }
+        }
+
+        function hydrateHomeHero(data) {
+            if (!data) return;
+            const profileName = document.getElementById('profileName');
+            if (profileName) {
+                profileName.textContent = data.user_name || data.telegram?.first_name || 'Користувач';
+            }
+            const profileId = document.getElementById('profileId');
+            if (profileId) {
+                profileId.textContent = data.user_id || data.telegram?.id || '—';
+            }
+            const usernameEl = document.getElementById('profileUsername');
+            if (usernameEl) {
+                if (data.telegram?.username) {
+                    usernameEl.textContent = '@' + data.telegram.username;
+                    usernameEl.style.display = 'block';
+                } else {
+                    usernameEl.style.display = 'none';
+                }
+            }
+            const balanceAmount = document.getElementById('balanceAmount');
+            if (balanceAmount) {
+                balanceAmount.textContent = formatCurrency(data.balance) + '₴';
+            }
+            const withdrawnAmount = document.getElementById('withdrawnAmount');
+            if (withdrawnAmount) {
+                withdrawnAmount.textContent = formatCurrency(data.withdrawn) + '₴';
+            }
+            const depositsAmount = document.getElementById('depositsAmount');
+            if (depositsAmount) {
+                depositsAmount.textContent = formatCurrency(data.deposits_sum || data.deposits) + '₴';
+            }
+            const joined = document.getElementById('profileJoined');
+            if (joined) {
+                joined.textContent = formatDateLabel(data.date_joined);
+            }
+            const lastActive = document.getElementById('profileLastActive');
+            if (lastActive && data.last_active) {
+                lastActive.textContent = formatDateLabel(data.last_active);
+            }
+            const badge = document.getElementById('profileBadge');
+            if (badge) {
+                const isAdmin = hasAdminFlag(data.is_admin);
+                badge.textContent = isAdmin ? 'Адмін' : 'Інвестор';
+                if (isAdmin) {
+                    badge.classList.add('admin');
+                } else {
+                    badge.classList.remove('admin');
+                }
+            }
+        }
+
+        function formatDateLabel(value) {
+            if (!value) return '—';
+            let numeric = parseInt(value, 10);
+            if (!isNaN(numeric) && numeric > 1000000000) {
+                if (numeric < 1000000000000) {
+                    numeric *= 1000;
+                }
+                return new Date(numeric).toLocaleDateString('uk-UA');
+            }
+            const parsed = Date.parse(value);
+            if (!isNaN(parsed)) {
+                return new Date(parsed).toLocaleDateString('uk-UA');
+            }
+            return value;
+        }
+    </script>
+    <div id="newsModal" class="notification-modal" style="display: none;">
+        <div class="modal-overlay" onclick="closeNewsModal()"></div>
+        <div class="modal-content news-modal-content">
+            <div class="modal-header">
+                <h2>📰 Новини платформи</h2>
+                <button class="modal-close" onclick="closeNewsModal()">×</button>
+            </div>
+            <div class="modal-body news-modal-body" id="newsModalBody">
+                <p class="empty-message">Новини завантажуються...</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

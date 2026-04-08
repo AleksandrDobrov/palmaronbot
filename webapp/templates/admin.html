@@ -1,0 +1,3150 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Адмінка - INVESTING PALMARON BOT</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Шапка -->
+        <header class="app-header">
+            <div class="header-decoration header-decoration-left"></div>
+            <div class="header-decoration header-decoration-right"></div>
+            <div class="header-content">
+                <a href="/" class="back-button">← Назад</a>
+                <h1 class="page-title">🛠 Адмінка</h1>
+            </div>
+            <div class="notifications-icon" id="notificationsIcon" onclick="openNotificationsModal()">
+                <span class="notifications-bell">🔔</span>
+                <span class="notifications-badge" id="notificationsBadge" style="display: none;">0</span>
+            </div>
+        </header>
+
+        <!-- Контент админки -->
+        <main class="main-content">
+            <!-- Проверка доступа -->
+            <div id="accessDenied" style="display: none;">
+                <div class="error-message">
+                    <h2>❌ Доступ заборонено</h2>
+                    <p>У вас немає прав адміністратора</p>
+                </div>
+            </div>
+
+            <!-- Админ панель -->
+            <div id="adminPanel" style="display: none;">
+                <!-- Управління балансами -->
+                <section class="admin-section glass-panel">
+                    <h2 class="section-title">⚙️ Управління балансами</h2>
+                    <div class="admin-grid">
+                        <button class="admin-btn" onclick="adminAction('balance_menu')">
+                            <span class="btn-icon">💰</span>
+                            <span class="btn-text">Баланси</span>
+                        </button>
+                        <button class="admin-btn" onclick="adminAction('min_deposit')">
+                            <span class="btn-icon">💵</span>
+                            <span class="btn-text">Мін.депозит</span>
+                        </button>
+                        <button class="admin-btn" onclick="adminAction('min_withdraw')">
+                            <span class="btn-icon">💸</span>
+                            <span class="btn-text">Мін.вивід</span>
+                        </button>
+                        <button class="admin-btn" onclick="adminAction('deposit_menu')">
+                            <span class="btn-icon">🏦</span>
+                            <span class="btn-text">Депозити</span>
+                        </button>
+                        <button class="admin-btn" onclick="adminAction('deposit_requests')">
+                            <span class="btn-icon">📄</span>
+                            <span class="btn-text">Заявки депозит</span>
+                        </button>
+                        <button class="admin-btn" onclick="adminAction('withdraw_requests')">
+                            <span class="btn-icon">💸</span>
+                            <span class="btn-text">Заявки вивід</span>
+                        </button>
+                        <button class="admin-btn" onclick="adminAction('balance_stats')">
+                            <span class="btn-icon">📊</span>
+                            <span class="btn-text">Статистика балансів</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Сад та економіка -->
+                <section class="admin-section glass-panel">
+                    <h2 class="section-title">🌳 Сад та економіка</h2>
+                    <div class="admin-grid">
+                        <button class="admin-btn" onclick="openGardenControlModal('users')">
+                            <span class="btn-icon">🌳</span>
+                            <span class="btn-text">Центр керування садом</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Комунікації -->
+                <section class="admin-section glass-panel">
+                    <h2 class="section-title">📰 Комунікації</h2>
+                    <div class="admin-grid">
+                        <button class="admin-btn" onclick="openNewsCenterModal()">
+                            <span class="btn-icon">📰</span>
+                            <span class="btn-text">Новини платформи</span>
+                        </button>
+                        <button class="admin-btn" onclick="openBrandingModal()">
+                            <span class="btn-icon">🎨</span>
+                            <span class="btn-text">Брендинг і шапка</span>
+                        </button>
+                        <button class="admin-btn" onclick="openAdminSupportModal()">
+                            <span class="btn-icon">💬</span>
+                            <span class="btn-text">Звернення підтримки</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Бонуси та промо -->
+                <section class="admin-section glass-panel">
+                    <h2 class="section-title">🎁 Бонуси та промо</h2>
+                    <div class="admin-grid">
+                        <button class="admin-btn" onclick="showPromoCodesModal()">
+                            <span class="btn-icon">🎟️</span>
+                            <span class="btn-text">Промокоди</span>
+                        </button>
+                        <button class="admin-btn" onclick="adminAction('ref_bonus')">
+                            <span class="btn-icon">🎯</span>
+                            <span class="btn-text">Реферальний бонус</span>
+                        </button>
+                        <button class="admin-btn" onclick="adminAction('ref_rules')">
+                            <span class="btn-icon">👥</span>
+                            <span class="btn-text">Реферальні правила</span>
+                        </button>
+                        <button class="admin-btn" onclick="adminAction('giveaways')">
+                            <span class="btn-icon">🎁</span>
+                            <span class="btn-text">Розіграші</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Ігри та чати -->
+                <section class="admin-section glass-panel">
+                    <h2 class="section-title">🎮 Ігри та чати</h2>
+                    <div class="admin-grid">
+                        <button class="admin-btn" onclick="adminAction('games_menu')">
+                            <span class="btn-icon">🎰</span>
+                            <span class="btn-text">Азартні ігри</span>
+                        </button>
+                        <button class="admin-btn" onclick="adminAction('gaming_chats')">
+                            <span class="btn-icon">🎮</span>
+                            <span class="btn-text">Ігрові чати</span>
+                        </button>
+                        <button class="admin-btn" onclick="openGiftSettingsModal()">
+                            <span class="btn-icon">🎁</span>
+                            <span class="btn-text">Налаштування Подарунків</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Користувачі та інше -->
+                <section class="admin-section glass-panel">
+                    <h2 class="section-title">🛠 Користувачі та інше</h2>
+                    <div class="admin-grid">
+                        <button class="admin-btn" onclick="adminAction('users_gardens')">
+                            <span class="btn-icon">👤</span>
+                            <span class="btn-text">Користувачі</span>
+                        </button>
+                        <button class="admin-btn" onclick="showEditUserProfileModal()">
+                            <span class="btn-icon">✏️</span>
+                            <span class="btn-text">Редактор профілю</span>
+                        </button>
+                        <button class="admin-btn" onclick="showRequisitesModal()">
+                            <span class="btn-icon">💳</span>
+                            <span class="btn-text">Реквізити</span>
+                        </button>
+                        <button class="admin-btn" onclick="adminAction('delete_user')">
+                            <span class="btn-icon">🗑️</span>
+                            <span class="btn-text">Видалити користувача</span>
+                        </button>
+                        <button class="admin-btn" onclick="adminAction('cleanup_history')">
+                            <span class="btn-icon">🧹</span>
+                            <span class="btn-text">Очистити історію</span>
+                        </button>
+                        <button class="admin-btn" onclick="adminAction('quests_menu')">
+                            <span class="btn-icon">🍎</span>
+                            <span class="btn-text">Квести</span>
+                        </button>
+                        <button class="admin-btn" onclick="window.location.href='/admin/tasks'">
+                            <span class="btn-icon">📋</span>
+                            <span class="btn-text">Управління завданнями</span>
+                        </button>
+                        <button class="admin-btn" onclick="adminAction('achievements_menu')">
+                            <span class="btn-icon">🏆</span>
+                            <span class="btn-text">Досягнення</span>
+                        </button>
+                        <button class="admin-btn" onclick="adminAction('manage_channels')">
+                            <span class="btn-icon">📢</span>
+                            <span class="btn-text">Управління каналами</span>
+                        </button>
+                        <button class="admin-btn" onclick="openBetaTestersModal()">
+                            <span class="btn-icon">🧪</span>
+                            <span class="btn-text">Бета тестери</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Система -->
+                <section class="admin-section glass-panel">
+                    <h2 class="section-title">⚙️ Система</h2>
+                    <div class="admin-grid">
+                        <button class="admin-btn" onclick="adminAction('bot_stats')">
+                            <span class="btn-icon">📊</span>
+                            <span class="btn-text">Статистика</span>
+                        </button>
+                        <button class="admin-btn" onclick="adminAction('restart_bot')">
+                            <span class="btn-icon">🔄</span>
+                            <span class="btn-text">Перезапуск</span>
+                        </button>
+                        <button class="admin-btn" id="maintenanceButton" onclick="toggleMaintenanceMode()">
+                            <span class="btn-icon">🛠</span>
+                            <span class="btn-text" id="maintenanceButtonText">Увімкнути тех.роботи</span>
+                        </button>
+                        <div class="maintenance-status-chip" id="maintenanceStatusChip">
+                            🔌 Технічні роботи вимкнені
+                        </div>
+                        <button class="admin-btn" onclick="adminAction('change_requisites')">
+                            <span class="btn-icon">✏️</span>
+                            <span class="btn-text">Реквізити</span>
+                        </button>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <div id="brandingModal" class="notification-modal" style="display: none;">
+        <div class="modal-overlay" onclick="closeBrandingModal()"></div>
+        <div class="modal-content" style="max-width: 720px;">
+            <div class="modal-header">
+                <h2>🎨 Брендинг та шапка</h2>
+                <button class="modal-close" onclick="closeBrandingModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="news-form-grid">
+                    <div class="form-group">
+                        <label>Бейдж шапки</label>
+                        <input type="text" id="brandingHeroBadge" class="input-field" placeholder="🚀 INVESTING TEAM">
+                    </div>
+                    <div class="form-group">
+                        <label>Заголовок шапки</label>
+                        <input type="text" id="brandingHeroTitle" class="input-field" placeholder="INVESTING PALMARON BOT">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Підзаголовок</label>
+                        <textarea id="brandingHeroSubtitle" class="input-field" rows="2"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>CTA #1</label>
+                        <input type="text" id="brandingHeroCtaPrimary" class="input-field" placeholder="Відкрити сад">
+                    </div>
+                    <div class="form-group">
+                        <label>CTA #2</label>
+                        <input type="text" id="brandingHeroCtaSecondary" class="input-field" placeholder="Поповнити баланс">
+                    </div>
+                    <div class="form-group">
+                        <label>Назва каналу</label>
+                        <input type="text" id="brandingChannelTitle" class="input-field">
+                    </div>
+                    <div class="form-group">
+                        <label>Опис каналу</label>
+                        <textarea id="brandingChannelDescription" class="input-field" rows="2"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Посилання на канал</label>
+                        <input type="text" id="brandingChannelUrl" class="input-field" placeholder="https://t.me/...">
+                    </div>
+                    <div class="form-group">
+                        <label>Текст кнопки каналу</label>
+                        <input type="text" id="brandingChannelCta" class="input-field" placeholder="Відкрити канал">
+                    </div>
+                    <div class="form-group">
+                        <label>Заголовок блоку новин</label>
+                        <input type="text" id="brandingNewsTitle" class="input-field">
+                    </div>
+                    <div class="form-group">
+                        <label>Пояснення під заголовком</label>
+                        <input type="text" id="brandingNewsHint" class="input-field">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Юридичний текст внизу</label>
+                        <textarea id="brandingLegalText" class="input-field" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="news-form-actions">
+                    <button class="primary-btn" onclick="saveBrandingSettings()">💾 Зберегти</button>
+                    <button class="secondary-btn ghost" onclick="closeBrandingModal()">Закрити</button>
+                </div>
+                <div class="form-status" id="brandingStatus"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="giftSettingsModal" class="notification-modal" style="display: none;">
+        <div class="modal-overlay" onclick="closeGiftSettingsModal()"></div>
+        <div class="modal-content gift-settings-content">
+            <div class="modal-header">
+                <h2>🎁 Налаштування подарунків</h2>
+                <button class="modal-close" onclick="closeGiftSettingsModal()">×</button>
+            </div>
+            <div class="modal-body gift-settings-body">
+                <div id="giftSettingsStatus" class="form-status" style="margin-bottom:12px;"></div>
+                <div class="gift-basic-grid">
+                    <div class="gift-basic-card">
+                        <label>Кількість бомб</label>
+                        <input type="number" id="giftBombsInput" class="input-field" min="0" step="1">
+                        <label>Кулдаун (годин)</label>
+                        <input type="number" id="giftCooldownInput" class="input-field" min="1" step="1">
+                        <div class="gift-basic-actions">
+                            <label class="checkbox-inline">
+                                <input type="checkbox" id="giftResetSessions">
+                                Скинути активні сесії
+                            </label>
+                            <label class="checkbox-inline">
+                                <input type="checkbox" id="giftResetCooldowns">
+                                Очистити кулдауни
+                            </label>
+                            <button class="primary-btn" onclick="saveGiftBasicSettings()">Зберегти</button>
+                        </div>
+                    </div>
+                    <div class="gift-basic-card">
+                        <p class="modal-subtitle">Рівні саду</p>
+                        <div id="giftLevelsTaglist" class="gift-level-tags"></div>
+                        <p style="font-size:12px; color:rgba(255,255,255,0.6); margin-top:8px;">
+                            Вкажіть базові параметри кожного рівня та перегляньте нагороди за спроби. Після змін можна автоматично перерахувати таблицю винагород.
+                        </p>
+                    </div>
+                </div>
+                <div id="giftLevelsContainer" class="gift-levels-container">
+                    <p class="empty-message">Завантаження...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="newsCenterModal" class="notification-modal" style="display: none;">
+        <div class="modal-overlay" onclick="closeNewsCenterModal()"></div>
+        <div class="modal-content news-center-content">
+            <div class="modal-header">
+                <h2>📰 Центр новин</h2>
+                <button class="modal-close" onclick="closeNewsCenterModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="news-form-grid">
+                    <input type="hidden" id="newsFormId">
+                    <div class="form-group">
+                        <label>Заголовок</label>
+                        <input type="text" id="newsFormTitle" class="input-field" placeholder="Наприклад, Велике оновлення">
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Текст новини</label>
+                        <textarea id="newsFormContent" class="input-field" rows="4" placeholder="Опишіть, що нового"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Посилання на обкладинку</label>
+                        <input type="text" id="newsFormCover" class="input-field" placeholder="https://">
+                    </div>
+                    <div class="form-group">
+                        <label>Назва кнопки</label>
+                        <input type="text" id="newsFormCtaLabel" class="input-field" placeholder="Детальніше">
+                    </div>
+                    <div class="form-group">
+                        <label>Посилання кнопки</label>
+                        <input type="text" id="newsFormCtaUrl" class="input-field" placeholder="https://">
+                    </div>
+                    <div class="form-group">
+                        <label>Статус</label>
+                        <select id="newsFormStatus" class="input-field">
+                            <option value="published">Опубліковано</option>
+                            <option value="draft">Чернетка</option>
+                        </select>
+                    </div>
+                    <div class="form-group checkbox-group">
+                        <label>
+                            <input type="checkbox" id="newsFormPinned">
+                            Закріпити новину у верхній частині
+                        </label>
+                    </div>
+                </div>
+                <div class="news-form-actions">
+                    <button class="primary-btn" onclick="submitNewsForm()">💾 Зберегти</button>
+                    <button class="secondary-btn ghost" onclick="resetNewsForm()">Скинути</button>
+                </div>
+                <div class="form-status" id="newsAdminStatus"></div>
+                <div class="news-admin-list" id="newsAdminList">
+                    <p class="empty-message">Новини ще не завантажені</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="adminSupportModal" class="notification-modal" style="display: none;">
+        <div class="modal-overlay" onclick="closeAdminSupportModal()"></div>
+        <div class="modal-content support-modal-content">
+            <div class="modal-header support-modal-header">
+                <div>
+                    <h2>💬 Звернення підтримки</h2>
+                    <p>Переглядайте звернення користувачів, відповідайте та фіксуйте рішення</p>
+                </div>
+                <button class="modal-close" onclick="closeAdminSupportModal()">×</button>
+            </div>
+            <div class="support-hero support-admin-hero">
+                <div class="support-hero-copy">
+                    <h3 style="margin:0;">Live-центр операторів</h3>
+                    <p>Швидко беріть звернення у роботу, відповідайте та закривайте тікети.</p>
+                </div>
+                <div class="support-hero-actions">
+                    <button class="support-hero-btn ghost" type="button" onclick="loadAdminSupportTickets()">⟳ Оновити</button>
+                    <button class="support-hero-btn" type="button" onclick="updateAdminSupportFilters()">Показати всі</button>
+                </div>
+            </div>
+            <div class="support-layout support-admin-layout">
+                <aside class="support-sidebar">
+                    <div class="support-sidebar-header">
+                        <span>Список звернень</span>
+                        <button type="button" class="ghost-icon-btn" onclick="loadAdminSupportTickets()" title="Оновити">⟳</button>
+                    </div>
+                    <div class="form-group">
+                        <label>Статус</label>
+                        <select id="adminSupportFilterStatus" class="input-field" onchange="updateAdminSupportFilters()">
+                            <option value="pending">В обробці</option>
+                            <option value="answered">Очікує клієнта</option>
+                            <option value="closed">Закрито</option>
+                            <option value="all">Усі</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Призначення</label>
+                        <select id="adminSupportFilterAssigned" class="input-field" onchange="updateAdminSupportFilters()">
+                            <option value="all" selected>Усі</option>
+                            <option value="me">Мої звернення</option>
+                            <option value="unassigned">Непризначені</option>
+                            <option value="assigned">Призначені</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Категорія</label>
+                        <select id="adminSupportFilterCategory" class="input-field" onchange="updateAdminSupportFilters()">
+                            <option value="all">Усі категорії</option>
+                            <option value="general">Загальне питання</option>
+                            <option value="deposits">Поповнення</option>
+                            <option value="withdrawals">Виведення</option>
+                            <option value="garden">Сад</option>
+                            <option value="gift">Подарунки</option>
+                            <option value="technical">Технічні</option>
+                            <option value="verification">Верифікація</option>
+                        </select>
+                    </div>
+                    <div class="support-admin-stats" id="adminSupportStats">
+                        <span>Нові <strong>0</strong></span>
+                        <span>Мої <strong>0</strong></span>
+                        <span>Без оператора <strong>0</strong></span>
+                    </div>
+                    <div class="support-ticket-list" id="adminSupportTicketList">
+                        <div class="support-empty-list">Завантаження...</div>
+                    </div>
+                </aside>
+                <section class="support-chat-panel support-admin-panel">
+                    <div class="support-chat-header">
+                        <div>
+                    <div class="support-chat-title" id="adminSupportSubject">Оберіть звернення</div>
+                    <div class="support-chat-meta" id="adminSupportUserMeta">Немає активного діалогу</div>
+                    <div class="support-ticket-category" id="adminSupportCategoryPill" style="display:none;"></div>
+                        </div>
+                        <span class="support-status-pill" id="adminSupportHeaderStatus" style="display: none;"></span>
+                    </div>
+                    <div class="support-chat-scroll" id="adminSupportChat">
+                        <div class="support-empty-state" id="adminSupportEmptyState">
+                            <div class="support-empty-emoji">💬</div>
+                            <p>Оберіть звернення зі списку ліворуч, щоб переглянути історію.</p>
+                        </div>
+                    </div>
+                    <div class="support-admin-tools">
+                        <div class="support-admin-block">
+                            <label>Відповідь користувачу</label>
+                            <textarea id="adminSupportReplyInput" class="support-textarea" rows="3" placeholder="Напишіть відповідь або уточніть деталі..."></textarea>
+                            <button class="primary-btn" onclick="sendAdminSupportReply()">Надіслати відповідь</button>
+                        </div>
+                        <div class="support-admin-block">
+                            <div class="support-admin-grid">
+                                <div>
+                                    <label>Новий статус</label>
+                                    <select id="adminSupportStatusSelect" class="input-field">
+                                        <option value="pending">В обробці</option>
+                                        <option value="answered">Очікує клієнта</option>
+                                        <option value="closed">Закрити звернення</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label>Баланс (± грн)</label>
+                                    <input type="number" id="adminSupportBalanceInput" class="input-field" step="0.01" placeholder="0.00">
+                                </div>
+                            </div>
+                            <label>Причина / коментар</label>
+                            <textarea id="adminSupportReasonInput" class="input-field" rows="2" placeholder="Коротко опишіть рішення або причину відмови..."></textarea>
+                            <label class="checkbox-inline">
+                                <input type="checkbox" id="adminSupportNotifyToggle" checked>
+                                Сповістити користувача
+                            </label>
+                            <div class="support-admin-actions">
+                                <button class="ghost-btn" type="button" onclick="adminSupportQuickStatus('pending')">В обробці</button>
+                                <button class="ghost-btn" type="button" onclick="adminSupportQuickStatus('answered')">Очікує клієнта</button>
+                                <button class="ghost-btn danger" type="button" onclick="adminSupportQuickStatus('closed')">Закрити звернення</button>
+                                <button class="secondary-btn" type="button" onclick="updateAdminSupportStatus()">Застосувати зміни</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/telegram-webapp.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script>
+        function showAdminAlert(message) {
+            if (typeof safeShowAlert === 'function') {
+                safeShowAlert(message);
+            } else if (window.telegramWebApp && typeof telegramWebApp.showAlert === 'function') {
+                telegramWebApp.showAlert(message);
+            } else {
+                alert(message);
+            }
+        }
+        
+        // Проверка доступа и загрузка данных
+        async function checkAdminAccess() {
+            try {
+                const userInfo = await api.getUserInfo();
+                
+                if (!userInfo.is_admin) {
+                    document.getElementById('accessDenied').style.display = 'block';
+                    return;
+                }
+                
+                document.getElementById('adminPanel').style.display = 'block';
+                
+                // Загружаем данные админки
+                const adminData = await api.getAdminPanelData();
+                console.log('Admin data:', adminData);
+            } catch (error) {
+                console.error('Error checking admin access:', error);
+                if (error.message.includes('403') || error.message.includes('Admin')) {
+                    document.getElementById('accessDenied').style.display = 'block';
+                } else {
+                    showAdminAlert('Помилка завантаження: ' + error.message);
+                }
+            }
+        }
+        
+        async function adminAction(action) {
+            try {
+                if (action === 'balance_menu') {
+                    showBalanceMenu();
+                } else if (action === 'users_gardens') {
+                    showUsersList();
+                } else if (action === 'deposit_requests') {
+                    showDeposits('pending');
+                } else if (action === 'withdraw_requests') {
+                    showWithdrawals('pending');
+                } else if (action === 'toggle_maintenance') {
+                    toggleMaintenanceMode();
+                } else if (action === 'min_deposit') {
+                    showMinDepositForm();
+                } else if (action === 'min_withdraw') {
+                    showMinWithdrawForm();
+                } else if (action === 'balance_stats') {
+                    showBalanceStats();
+                } else if (action === 'tree_price') {
+                    openGardenControlModal('trees');
+                } else if (action === 'fruit_price') {
+                    openGardenControlModal('fruits');
+                } else if (action === 'garden_history') {
+                    openGardenControlModal('users');
+                } else {
+                    showAdminAlert(`Виконання дії: ${action}\n\nФункція в розробці`);
+                }
+            } catch (error) {
+                console.error('Error executing admin action:', error);
+                showAdminAlert('Помилка: ' + error.message);
+            }
+        }
+        
+        async function showBalanceMenu() {
+            const userId = prompt('Введіть ID користувача:');
+            if (!userId) return;
+            
+            const userIdNum = parseInt(userId);
+            if (isNaN(userIdNum)) {
+                showAdminAlert('Невірний ID!');
+                return;
+            }
+            
+            // Получаем информацию о пользователе
+            try {
+                const users = await api.getAdminUsers();
+                const user = users.users.find(u => u.user_id === userIdNum);
+                const currentBalance = user ? user.balance : '?';
+                
+                const action = prompt(`Користувач: ${user ? user.user_name : 'ID ' + userIdNum}\nПоточний баланс: ${currentBalance}₴\n\nДія:\n1 - Додати баланс\n2 - Забрати баланс\n3 - Встановити баланс\n\nВведіть номер:`);
+                if (!action) return;
+                
+                const amount = prompt('Введіть суму (₴):');
+                if (!amount) return;
+                
+                const amountNum = parseFloat(amount.replace(',', '.'));
+                if (isNaN(amountNum) || amountNum <= 0) {
+                    showAdminAlert('Невірна сума!');
+                    return;
+                }
+                
+                let actionType = 'add';
+                let actionText = 'додано';
+                if (action === '2') {
+                    actionType = 'subtract';
+                    actionText = 'забрано';
+                } else if (action === '3') {
+                    actionType = 'set';
+                    actionText = 'встановлено';
+                }
+                
+                // Подтверждение
+                const confirmText = actionType === 'add' ? `Додати ${amountNum}₴?` :
+                                   actionType === 'subtract' ? `Забрати ${amountNum}₴?` :
+                                   `Встановити баланс ${amountNum}₴?`;
+                
+                if (!confirm(confirmText)) return;
+                
+                api.changeUserBalance(userIdNum, amountNum, actionType)
+                    .then(result => {
+                        const message = `✅ Баланс ${actionText}!\n\n` +
+                                      `Користувач: ${user ? user.user_name : 'ID ' + userIdNum}\n` +
+                                      `Було: ${currentBalance}₴\n` +
+                                      `Стало: ${result.new_balance}₴\n` +
+                                      `Зміна: ${actionType === 'add' ? '+' : actionType === 'subtract' ? '-' : ''}${amountNum}₴`;
+                        showAdminAlert(message);
+                    })
+                    .catch(error => {
+                        console.error('Error changing balance:', error);
+                        showAdminAlert('Помилка: ' + error.message);
+                    });
+            } catch (error) {
+                console.error('Error getting user info:', error);
+                // Продолжаем без информации о пользователе
+                const action = prompt('Дія:\n1 - Додати баланс\n2 - Забрати баланс\n3 - Встановити баланс\n\nВведіть номер:');
+                if (!action) return;
+                
+                const amount = prompt('Введіть суму (₴):');
+                if (!amount) return;
+                
+                const amountNum = parseFloat(amount.replace(',', '.'));
+                if (isNaN(amountNum) || amountNum <= 0) {
+                    showAdminAlert('Невірна сума!');
+                    return;
+                }
+                
+                let actionType = 'add';
+                if (action === '2') actionType = 'subtract';
+                else if (action === '3') actionType = 'set';
+                
+                api.changeUserBalance(userIdNum, amountNum, actionType)
+                    .then(result => {
+                        showAdminAlert(`✅ Баланс змінено!\nНовий баланс: ${result.new_balance}₴`);
+                    })
+                    .catch(error => {
+                        console.error('Error changing balance:', error);
+                        showAdminAlert('Помилка: ' + error.message);
+                    });
+            }
+        }
+        
+        async function showUsersList() {
+            try {
+                const data = await api.getAdminUsers();
+                if (data.users.length === 0) {
+                    showAdminAlert('Користувачів не знайдено');
+                    return;
+                }
+                
+                let message = '👥 <b>Список користувачів (топ-100):</b>\n\n';
+                data.users.slice(0, 20).forEach((user, idx) => {
+                    message += `${idx + 1}. ${user.user_name} (ID: ${user.user_id})\nБаланс: ${user.balance.toFixed(2)}₴\n\n`;
+                });
+                
+                if (data.users.length > 20) {
+                    message += `... та ще ${data.users.length - 20} користувачів`;
+                }
+                
+                showAdminAlert(message);
+            } catch (error) {
+                console.error('Error loading users:', error);
+                showAdminAlert('Помилка завантаження користувачів');
+            }
+        }
+        
+        async function showDeposits(status) {
+            openRequestsModal('deposit', status || 'pending');
+        }
+        
+        async function showWithdrawals(status) {
+            openRequestsModal('withdraw', status || 'pending');
+        }
+
+        async function showMinDepositForm() {
+            openBalanceSettingsModal('deposit');
+        }
+        
+        async function showMinWithdrawForm() {
+            openBalanceSettingsModal('withdraw');
+        }
+
+        async function showBalanceStats() {
+            openBalanceStatsModal();
+        }
+
+        function formatCurrency(value) {
+            const num = parseFloat(value || 0);
+            if (isNaN(num)) return '0.00';
+            return num.toFixed(2);
+        }
+
+        function formatNumber(value, digits = 2) {
+            const num = parseFloat(value ?? 0);
+            if (isNaN(num)) return '';
+            return num.toFixed(digits);
+        }
+
+        function formatDateTime(value) {
+            if (!value) return '—';
+            try {
+                const date = new Date(value.replace(' ', 'T'));
+                return date.toLocaleString('uk-UA');
+            } catch (e) {
+                return value;
+            }
+        }
+
+        function formatDateTimeFromTs(value) {
+            if (!value && value !== 0) return '—';
+            const ts = parseInt(value, 10);
+            if (!isNaN(ts)) {
+                return new Date(ts * 1000).toLocaleString('uk-UA');
+            }
+            return formatDateTime(value);
+        }
+
+        function escapeHtml(text) {
+            if (typeof text !== 'string') return text || '';
+            return text
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        /* -------- Центр підтримки (адмін) -------- */
+        const adminSupportState = {
+            tickets: [],
+            messages: [],
+            activeTicketId: null,
+            activeTicket: null,
+            loadingList: false,
+            loadingThread: false,
+            statsInterval: null
+        };
+
+        function openAdminSupportModal() {
+            const modal = document.getElementById('adminSupportModal');
+            if (!modal) return;
+            modal.style.display = 'flex';
+            adminSupportState.activeTicketId = null;
+            loadAdminSupportTickets();
+            refreshAdminSupportStats();
+            if (adminSupportState.statsInterval) {
+                clearInterval(adminSupportState.statsInterval);
+            }
+            adminSupportState.statsInterval = setInterval(refreshAdminSupportStats, 60000);
+        }
+
+        function closeAdminSupportModal() {
+            const modal = document.getElementById('adminSupportModal');
+            if (modal) modal.style.display = 'none';
+            if (adminSupportState.statsInterval) {
+                clearInterval(adminSupportState.statsInterval);
+                adminSupportState.statsInterval = null;
+            }
+        }
+
+        function updateAdminSupportFilters() {
+            adminSupportState.activeTicketId = null;
+            loadAdminSupportTickets();
+        }
+
+        async function loadAdminSupportTickets() {
+            if (adminSupportState.loadingList) return;
+            adminSupportState.loadingList = true;
+            renderAdminSupportTickets({ loading: true });
+            try {
+                const statusFilter = document.getElementById('adminSupportFilterStatus')?.value || 'pending';
+                const assignedFilter = document.getElementById('adminSupportFilterAssigned')?.value || 'all';
+                const categoryFilter = document.getElementById('adminSupportFilterCategory')?.value || 'all';
+                const params = {};
+                if (statusFilter && statusFilter !== 'all') params.status = statusFilter;
+                if (assignedFilter && assignedFilter !== 'all') params.assigned = assignedFilter;
+                if (categoryFilter && categoryFilter !== 'all') params.category = categoryFilter;
+                const data = await api.getAdminSupportTickets(params);
+                adminSupportState.tickets = data?.tickets || [];
+                renderAdminSupportTickets();
+                if (adminSupportState.tickets.length) {
+                    const nextId = adminSupportState.activeTicketId || adminSupportState.tickets[0].id;
+                    selectAdminSupportTicket(nextId);
+                } else {
+                    renderAdminSupportEmptyThread();
+                }
+            } catch (error) {
+                console.error('Support admin load error:', error);
+                renderAdminSupportTickets({ error: error.message || 'Не вдалося завантажити' });
+                showAdminAlert(error.message || 'Не вдалося завантажити звернення');
+            } finally {
+                adminSupportState.loadingList = false;
+            refreshAdminSupportStats();
+            }
+        }
+
+        function renderAdminSupportTickets(options = {}) {
+            const list = document.getElementById('adminSupportTicketList');
+            if (!list) return;
+            if (options.loading) {
+                list.innerHTML = '<div class="support-empty-list">Завантаження...</div>';
+                return;
+            }
+            if (options.error) {
+                list.innerHTML = `<div class="support-empty-list">${escapeHtml(options.error)}</div>`;
+                return;
+            }
+            if (!adminSupportState.tickets.length) {
+                list.innerHTML = '<div class="support-empty-list">Звернення відсутні</div>';
+                return;
+            }
+            list.innerHTML = adminSupportState.tickets.map(ticket => {
+                const isActive = ticket.id === adminSupportState.activeTicketId;
+                const unread = Number(ticket.admin_unread_count) || 0;
+                const classes = ['support-ticket-card'];
+                if (isActive) classes.push('active');
+                if (unread > 0) classes.push('unread');
+                const unreadBadge = unread > 0
+                    ? `<span class="support-unread-pill admin">+${unread}</span>`
+                    : '';
+                const categoryPill = renderSupportCategoryPill(ticket.category);
+                return `
+                    <div class="${classes.join(' ')}" data-ticket-id="${ticket.id}">
+                        <div class="support-ticket-title">#${ticket.id} • ${escapeHtml(ticket.subject || 'Без теми')}</div>
+                        <div>${categoryPill}</div>
+                        <div class="support-ticket-meta">
+                            <span>${formatRelativeFromTs(ticket.updated_at)}</span>
+                            <div class="support-ticket-meta-right">
+                                ${unreadBadge}
+                                <span class="support-status-pill ${supportStatusClass(ticket.status)}">${supportStatusLabel(ticket.status)}</span>
+                            </div>
+                        </div>
+                        <div class="support-ticket-preview">${escapeHtml((ticket.last_message_preview || '').substring(0, 80))}</div>
+                    </div>
+                `;
+            }).join('');
+            list.querySelectorAll('.support-ticket-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    const id = Number(card.getAttribute('data-ticket-id'));
+                    selectAdminSupportTicket(id);
+                });
+            });
+        }
+
+        async function selectAdminSupportTicket(ticketId) {
+            if (!ticketId || adminSupportState.loadingThread) return;
+            adminSupportState.loadingThread = true;
+            renderAdminSupportChatPlaceholder('Завантаження діалогу...');
+            try {
+                const data = await api.getAdminSupportTicket(ticketId, { limit: 400 });
+                adminSupportState.activeTicketId = ticketId;
+                adminSupportState.activeTicket = data.ticket;
+                adminSupportState.messages = data.messages || [];
+            adminSupportState.tickets = adminSupportState.tickets.map(ticket =>
+                ticket.id === ticketId ? { ...ticket, admin_unread_count: 0 } : ticket
+            );
+                renderAdminSupportTickets();
+                renderAdminSupportThread();
+            } catch (error) {
+                console.error('Support admin load ticket error:', error);
+                showAdminAlert(error.message || 'Не вдалося завантажити звернення');
+            } finally {
+                adminSupportState.loadingThread = false;
+            refreshAdminSupportStats();
+            }
+        }
+
+        function renderAdminSupportThread() {
+            const ticket = adminSupportState.activeTicket;
+            const chat = document.getElementById('adminSupportChat');
+            const emptyState = document.getElementById('adminSupportEmptyState');
+            if (!ticket || !chat) return;
+            const subjectEl = document.getElementById('adminSupportSubject');
+            if (subjectEl) {
+                subjectEl.textContent = ticket.subject
+                    ? `#${ticket.id} • ${ticket.subject}`
+                    : `Звернення #${ticket.id}`;
+            }
+            const userMetaEl = document.getElementById('adminSupportUserMeta');
+            if (userMetaEl) {
+                const userLabel = ticket.user_name ? `${ticket.user_name} (ID ${ticket.user_id})` : `ID ${ticket.user_id}`;
+                userMetaEl.textContent = `${userLabel} • оновлено ${formatRelativeFromTs(ticket.updated_at)}`;
+            }
+            const statusPill = document.getElementById('adminSupportHeaderStatus');
+            if (statusPill) {
+                statusPill.style.display = 'inline-flex';
+                statusPill.className = `support-status-pill ${supportStatusClass(ticket.status)}`;
+                statusPill.textContent = supportStatusLabel(ticket.status);
+            }
+            const categoryPill = document.getElementById('adminSupportCategoryPill');
+            if (categoryPill) {
+                const meta = supportCategoryMeta(ticket.category);
+                categoryPill.style.display = 'inline-flex';
+                categoryPill.className = `support-ticket-category ${meta.key}`;
+                categoryPill.textContent = `${meta.icon} ${meta.label}`;
+            }
+            if (emptyState) emptyState.style.display = 'none';
+            chat.innerHTML = adminSupportState.messages.map(renderAdminSupportMessage).join('');
+            const statusSelect = document.getElementById('adminSupportStatusSelect');
+            if (statusSelect) statusSelect.value = ticket.status || 'pending';
+            const reasonInput = document.getElementById('adminSupportReasonInput');
+            if (reasonInput) reasonInput.value = ticket.closed_reason || '';
+            const balanceInput = document.getElementById('adminSupportBalanceInput');
+            if (balanceInput) balanceInput.value = '';
+            const notifyToggle = document.getElementById('adminSupportNotifyToggle');
+            if (notifyToggle) notifyToggle.checked = true;
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function renderAdminSupportMessage(message) {
+            const isUser = message.sender_role !== 'admin';
+            const author = isUser ? 'Користувач' : 'Адмін';
+            return `
+                <div class="support-bubble ${isUser ? 'user' : 'admin'}">
+                    <div class="bubble-author">${author}</div>
+                    <div class="bubble-text">${escapeHtml(message.body)}</div>
+                    <div class="bubble-meta">${formatRelativeFromTs(message.created_at)}</div>
+                </div>
+            `;
+        }
+
+        function renderAdminSupportEmptyThread() {
+            const chat = document.getElementById('adminSupportChat');
+            const emptyState = document.getElementById('adminSupportEmptyState');
+            if (chat && emptyState) {
+                emptyState.style.display = 'block';
+                chat.innerHTML = '';
+            }
+            const subjectEl = document.getElementById('adminSupportSubject');
+            const metaEl = document.getElementById('adminSupportUserMeta');
+            if (subjectEl) subjectEl.textContent = 'Оберіть звернення';
+            if (metaEl) metaEl.textContent = 'Немає активного діалогу';
+            const statusPill = document.getElementById('adminSupportHeaderStatus');
+            if (statusPill) statusPill.style.display = 'none';
+            const categoryPill = document.getElementById('adminSupportCategoryPill');
+            if (categoryPill) categoryPill.style.display = 'none';
+        }
+
+        function renderAdminSupportChatPlaceholder(message) {
+            const chat = document.getElementById('adminSupportChat');
+            if (chat) {
+                chat.innerHTML = `<div class="support-empty-list">${escapeHtml(message)}</div>`;
+            }
+        }
+
+        async function refreshAdminSupportStats() {
+            const container = document.getElementById('adminSupportStats');
+            if (!container || typeof api === 'undefined') return;
+            container.classList.add('is-loading');
+            try {
+                const stats = await api.getAdminSupportUnreadCount();
+                const total = stats?.total ?? 0;
+                const mine = stats?.assigned_to_me ?? 0;
+                const unassigned = stats?.unassigned ?? 0;
+                container.innerHTML = `
+                    <span>Нові <strong>${total}</strong></span>
+                    <span>Мої <strong>${mine}</strong></span>
+                    <span>Без оператора <strong>${unassigned}</strong></span>
+                `;
+            } catch (error) {
+                console.warn('Support stats error:', error);
+                container.innerHTML = '<span>Статистика недоступна</span>';
+            } finally {
+                container.classList.remove('is-loading');
+            }
+        }
+
+        async function sendAdminSupportReply() {
+            const ticketId = adminSupportState.activeTicketId;
+            if (!ticketId) {
+                showAdminAlert('Оберіть звернення');
+                return;
+            }
+            const input = document.getElementById('adminSupportReplyInput');
+            if (!input) return;
+            const message = input.value.trim();
+            if (!message) {
+                showAdminAlert('Введіть відповідь');
+                return;
+            }
+            input.disabled = true;
+            try {
+                await api.replyAdminSupportTicket(ticketId, { message, status: 'answered' });
+                input.value = '';
+                await selectAdminSupportTicket(ticketId);
+                loadAdminSupportTickets();
+                if (typeof showToast === 'function') {
+                    showToast('Відповідь надіслано', 'success');
+                }
+            } catch (error) {
+                console.error('Support reply error', error);
+                showAdminAlert(error.message || 'Не вдалося надіслати відповідь');
+            } finally {
+                input.disabled = false;
+            }
+        }
+
+        async function updateAdminSupportStatus() {
+            const ticketId = adminSupportState.activeTicketId;
+            if (!ticketId) {
+                showAdminAlert('Оберіть звернення');
+                return;
+            }
+            const status = document.getElementById('adminSupportStatusSelect').value;
+            const reason = document.getElementById('adminSupportReasonInput').value.trim();
+            const balance = document.getElementById('adminSupportBalanceInput').value.trim();
+            const notify = document.getElementById('adminSupportNotifyToggle').checked;
+            const payload = {
+                status,
+                reason: reason || null,
+                notify_user: notify
+            };
+            if (balance) {
+                payload.balance_delta = balance;
+            }
+            try {
+                await api.updateAdminSupportTicketStatus(ticketId, payload);
+                await selectAdminSupportTicket(ticketId);
+                loadAdminSupportTickets();
+                if (typeof showToast === 'function') {
+                    showToast('Статус оновлено', 'success');
+                } else {
+                    showAdminAlert('Статус оновлено');
+                }
+            } catch (error) {
+                console.error('Support status error', error);
+                showAdminAlert(error.message || 'Не вдалося оновити статус');
+            }
+        }
+
+        function supportStatusLabel(status) {
+            switch ((status || '').toLowerCase()) {
+                case 'answered':
+                    return 'Очікує клієнта';
+                case 'closed':
+                    return 'Закрито';
+                case 'pending':
+                default:
+                    return 'В обробці';
+            }
+        }
+
+        function supportStatusClass(status) {
+            switch ((status || '').toLowerCase()) {
+                case 'answered':
+                    return 'answered';
+                case 'closed':
+                    return 'closed';
+                default:
+                    return 'pending';
+            }
+        }
+
+        const SUPPORT_CATEGORY_LABELS = {
+            general: 'Загальне',
+            deposits: 'Поповнення',
+            withdrawals: 'Виведення',
+            garden: 'Сад',
+            gift: 'Подарунки',
+            technical: 'Технічне',
+            verification: 'Верифікація'
+        };
+        const SUPPORT_CATEGORY_ICONS = {
+            general: '💬',
+            deposits: '💰',
+            withdrawals: '💸',
+            garden: '🌱',
+            gift: '🎁',
+            technical: '🛠',
+            verification: '🔐'
+        };
+
+        function supportCategoryMeta(category) {
+            const key = (category || 'general').toLowerCase();
+            return {
+                key,
+                label: SUPPORT_CATEGORY_LABELS[key] || SUPPORT_CATEGORY_LABELS.general,
+                icon: SUPPORT_CATEGORY_ICONS[key] || SUPPORT_CATEGORY_ICONS.general
+            };
+        }
+
+        function renderSupportCategoryPill(category) {
+            const meta = supportCategoryMeta(category);
+            return `<span class="support-ticket-category ${meta.key}">${meta.icon} ${meta.label}</span>`;
+        }
+
+        function formatRelativeFromTs(timestamp) {
+            if (!timestamp) return '—';
+            const ts = parseInt(timestamp, 10);
+            if (isNaN(ts)) return timestamp;
+            const diffMs = Date.now() - ts * 1000;
+            const minutes = Math.floor(diffMs / 60000);
+            if (minutes < 1) return 'щойно';
+            if (minutes < 60) return `${minutes} хв`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours} год`;
+            const days = Math.floor(hours / 24);
+            if (days < 7) return `${days} дн`;
+            return new Date(ts * 1000).toLocaleDateString('uk-UA');
+        }
+
+        /* -------- Балансові ліміти -------- */
+        let balanceSettingsFocus = 'deposit';
+        let gardenTreeSettings = [];
+        let gardenFruitSettings = [];
+        let gardenControlActiveTab = 'trees';
+        let gardenSelectedUser = null;
+        let adminNewsEditingId = null;
+        let adminNewsList = [];
+        let adminBrandingCache = {};
+        const adminTreeMeta = {
+            apple: { name: 'Яблуня', emoji: '🍏' },
+            pear: { name: 'Груша', emoji: '🍐' },
+            cherry: { name: 'Вишня', emoji: '🍒' },
+            peach: { name: 'Персик', emoji: '🍑' }
+        };
+        const adminFruitMeta = {
+            apple: { name: 'Яблуко', emoji: '🍏' },
+            pear: { name: 'Груша', emoji: '🍐' },
+            cherry: { name: 'Вишня', emoji: '🍒' },
+            peach: { name: 'Персик', emoji: '🍑' },
+            golden_apple: { name: 'Золоте яблуко', emoji: '🥇' }
+        };
+
+        async function openBalanceSettingsModal(focusField = 'deposit') {
+            balanceSettingsFocus = focusField;
+            const modal = document.getElementById('balanceSettingsModal');
+            if (!modal) return;
+            modal.style.display = 'flex';
+            setBalanceSettingsStatus('⏳ Завантаження поточних значень...', 'pending');
+            try {
+                const data = await api.adminAction('get_min_settings');
+                document.getElementById('balanceMinDepositInput').value = formatCurrency(data.min_deposit ?? 0);
+                document.getElementById('balanceMinWithdrawInput').value = formatCurrency(data.min_withdraw ?? 0);
+                setBalanceSettingsStatus('Оновіть значення та натисніть «Зберегти».', 'success');
+                const target = focusField === 'withdraw'
+                    ? document.getElementById('balanceMinWithdrawInput')
+                    : document.getElementById('balanceMinDepositInput');
+                if (target) target.focus();
+            } catch (error) {
+                console.error('Error loading balance limits:', error);
+                setBalanceSettingsStatus('Помилка завантаження: ' + error.message, 'error');
+            }
+        }
+
+        function closeBalanceSettingsModal() {
+            const modal = document.getElementById('balanceSettingsModal');
+            if (modal) modal.style.display = 'none';
+            setBalanceSettingsStatus('', 'success');
+        }
+
+        async function saveBalanceLimit(type) {
+            const input = type === 'deposit'
+                ? document.getElementById('balanceMinDepositInput')
+                : document.getElementById('balanceMinWithdrawInput');
+            const statusKey = type === 'deposit' ? 'deposit' : 'withdraw';
+            if (!input) return;
+            const value = parseFloat((input.value || '0').toString().replace(',', '.'));
+            if (isNaN(value) || value <= 0) {
+                setBalanceSettingsStatus('Введіть коректне значення більше 0', 'error');
+                return;
+            }
+            setBalanceSettingsStatus('⏳ Зберігаємо...', 'pending');
+            try {
+                const endpoint = type === 'deposit' ? 'set_min_deposit' : 'set_min_withdraw';
+                await api.adminAction(endpoint, { amount: value });
+                setBalanceSettingsStatus(`✅ Ліміт оновлено (${formatCurrency(value)}₴)`, 'success');
+            } catch (error) {
+                console.error('Error saving balance limit:', error);
+                setBalanceSettingsStatus('Помилка збереження: ' + error.message, 'error');
+            }
+        }
+
+        function setBalanceSettingsStatus(message, state = 'info') {
+            const status = document.getElementById('balanceSettingsStatus');
+            if (!status) return;
+            if (!message) {
+                status.innerHTML = '';
+                return;
+            }
+            const colors = {
+                pending: '#4facfe',
+                success: '#4caf50',
+                error: '#f44336',
+                info: '#b0b8d2'
+            };
+            status.innerHTML = `<span style="color:${colors[state] || colors.info};">${message}</span>`;
+        }
+
+        /* -------- Статистика балансів -------- */
+        function closeBalanceStatsModal() {
+            const modal = document.getElementById('balanceStatsModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        async function openBalanceStatsModal() {
+            const modal = document.getElementById('balanceStatsModal');
+            if (!modal) return;
+            modal.style.display = 'flex';
+            renderBalanceStats(null, '⏳ Завантаження...');
+            renderBalanceUsers([]);
+            try {
+                const [statsData, usersData] = await Promise.all([
+                    api.adminAction('balance_stats'),
+                    api.getAdminUsers()
+                ]);
+                renderBalanceStats(statsData);
+                renderBalanceUsers(usersData && usersData.users ? usersData.users : []);
+            } catch (error) {
+                console.error('Error loading balance stats:', error);
+                renderBalanceStats(null, 'Помилка: ' + error.message);
+                renderBalanceUsers([]);
+            }
+        }
+
+        function renderBalanceStats(data, message = '') {
+            const status = document.getElementById('balanceStatsStatus');
+            const summary = document.getElementById('balanceStatsSummary');
+            const topList = document.getElementById('balanceStatsTopList');
+            if (!summary || !topList) return;
+
+            if (message) {
+                status.innerHTML = message;
+            } else {
+                status.innerHTML = '';
+            }
+
+            if (!data || !data.stats) {
+                summary.innerHTML = '';
+                topList.innerHTML = '';
+                return;
+            }
+
+            const s = data.stats;
+            summary.innerHTML = `
+                <div class="balance-stat-card">
+                    <div class="stat-label">Користувачів</div>
+                    <div class="stat-value">${s.users_total || 0}</div>
+                </div>
+                <div class="balance-stat-card">
+                    <div class="stat-label">Загальний баланс</div>
+                    <div class="stat-value">${formatCurrency(s.total_balance)}₴</div>
+                </div>
+                <div class="balance-stat-card">
+                    <div class="stat-label">Депозити</div>
+                    <div class="stat-value">${formatCurrency(s.total_deposits)}₴</div>
+                </div>
+                <div class="balance-stat-card">
+                    <div class="stat-label">Виведено</div>
+                    <div class="stat-value">${formatCurrency(s.total_withdrawn)}₴</div>
+                </div>
+            `;
+
+            if (data.top_users && data.top_users.length) {
+                topList.innerHTML = data.top_users.map((u, idx) => `
+                    <div class="top-user-row">
+                        <span>${idx + 1}. ${escapeHtml(u.user_name || 'Користувач')} (ID: ${u.user_id})</span>
+                        <strong>${formatCurrency(u.balance)}₴</strong>
+                    </div>
+                `).join('');
+            } else {
+                topList.innerHTML = '<div class="requests-empty">Ще немає статистики</div>';
+            }
+        }
+
+        function renderBalanceUsers(users) {
+            const container = document.getElementById('balanceStatsUsersTable');
+            if (!container) return;
+            if (!users || !users.length) {
+                container.innerHTML = '<div class="requests-empty" style="margin:0;">Немає даних</div>';
+                return;
+            }
+            container.innerHTML = `
+                <div class="balance-users-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Користувач</th>
+                                <th>Username</th>
+                                <th>Баланс</th>
+                                <th>Дата</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${users.map(user => `
+                                <tr>
+                                    <td>${user.user_id}</td>
+                                    <td>${escapeHtml(user.user_name || '—')}</td>
+                                    <td>${user.username ? '@' + escapeHtml(user.username) : '—'}</td>
+                                    <td>${formatCurrency(user.balance)}₴</td>
+                                    <td>${user.date_joined || '—'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        /* -------- Заявки на депозити / виводи -------- */
+        const requestsModalState = {
+            type: 'deposit',
+            status: 'pending',
+            data: []
+        };
+
+        function closeRequestsModal() {
+            const modal = document.getElementById('requestsModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function openRequestsModal(type = 'deposit', status = 'pending') {
+            requestsModalState.type = type;
+            requestsModalState.status = status;
+            const modal = document.getElementById('requestsModal');
+            if (!modal) return;
+            document.getElementById('requestsStatusSelect').value = status;
+            updateRequestsTabs();
+            modal.style.display = 'flex';
+            loadRequests();
+        }
+
+        function updateRequestsTabs() {
+            const title = document.getElementById('requestsModalTitle');
+            const subtitle = document.getElementById('requestsModalSubtitle');
+            const depositTab = document.getElementById('requestsTabDeposit');
+            const withdrawTab = document.getElementById('requestsTabWithdraw');
+            const type = requestsModalState.type;
+
+            if (title) {
+                title.textContent = type === 'deposit' ? 'Заявки на депозити' : 'Заявки на вивід';
+            }
+            if (subtitle) {
+                subtitle.textContent = type === 'deposit'
+                    ? 'Перевіряйте заявки на поповнення та підтверджуйте їх у два кліки.'
+                    : 'Контролюйте усі виводи та реквізити в одному вікні.';
+            }
+            if (depositTab && withdrawTab) {
+                depositTab.classList.toggle('active', type === 'deposit');
+                withdrawTab.classList.toggle('active', type === 'withdraw');
+            }
+        }
+
+        function switchRequestsType(type) {
+            if (requestsModalState.type === type) return;
+            requestsModalState.type = type;
+            requestsModalState.status = 'pending';
+            document.getElementById('requestsStatusSelect').value = 'pending';
+            updateRequestsTabs();
+            loadRequests();
+        }
+
+        function changeRequestsStatus(status) {
+            requestsModalState.status = status;
+            loadRequests();
+        }
+
+        function setRequestsStatus(message, type = 'info') {
+            const box = document.getElementById('requestsStatusMessage');
+            if (!box) return;
+            if (!message) {
+                box.innerHTML = '';
+                return;
+            }
+            const colors = {
+                pending: '#4facfe',
+                success: '#4caf50',
+                error: '#f44336',
+                info: '#b0b8d2'
+            };
+            box.innerHTML = `<span style="color:${colors[type] || colors.info};">${message}</span>`;
+        }
+
+        async function loadRequests() {
+            const type = requestsModalState.type;
+            const status = requestsModalState.status;
+            const listEl = document.getElementById('requestsList');
+            if (!listEl) return;
+            setRequestsStatus('⏳ Завантаження...', 'pending');
+            listEl.innerHTML = '';
+            try {
+                const statusParam = status === 'all' ? null : status;
+                const data = type === 'deposit'
+                    ? await api.getAdminDeposits(statusParam)
+                    : await api.getAdminWithdrawals(statusParam);
+                requestsModalState.data = type === 'deposit' ? (data.deposits || []) : (data.withdrawals || []);
+                renderRequestsList();
+                if (!requestsModalState.data.length) {
+                    setRequestsStatus('Заявок не знайдено', 'info');
+                } else {
+                    setRequestsStatus('');
+                }
+            } catch (error) {
+                console.error('Error loading requests:', error);
+                setRequestsStatus('Помилка завантаження: ' + error.message, 'error');
+            }
+        }
+
+        function renderRequestsList() {
+            const listEl = document.getElementById('requestsList');
+            if (!listEl) return;
+            if (!requestsModalState.data.length) {
+                listEl.innerHTML = '<div class="requests-empty">Заявок не знайдено</div>';
+                return;
+            }
+            const type = requestsModalState.type;
+            listEl.innerHTML = requestsModalState.data.map(item => {
+                const userLabel = item.user_name
+                    ? `${escapeHtml(item.user_name)} (ID: ${item.user_id})`
+                    : `ID: ${item.user_id}`;
+                const status = (item.status || '').toLowerCase();
+                const isPending = status === 'pending';
+                const comment = escapeHtml(item.comment || '—').replace(/\n/g, '<br>');
+                const requisites = escapeHtml(item.requisites || '—').replace(/\n/g, '<br>');
+                const created = formatDateTime(item.created_at);
+                const cardClass = type === 'withdraw' ? 'request-card withdraw' : 'request-card';
+                const titleIcon = type === 'withdraw' ? '💸' : '💵';
+                return `
+                    <div class="${cardClass}">
+                        <div class="request-header">
+                            <div>
+                                <h4 style="margin:0 0 4px 0;">${titleIcon} Заявка #${item.id}</h4>
+                                <div style="font-size:13px; color:rgba(255,255,255,0.6);">${userLabel}</div>
+                            </div>
+                            ${renderStatusChip(status)}
+                        </div>
+                        <div class="request-meta">
+                            <div><strong>Сума:</strong> ${formatCurrency(item.amount)}₴</div>
+                            <div><strong>Створено:</strong> ${created}</div>
+                        </div>
+                        <div class="request-comment">
+                            ${type === 'withdraw' ? `<strong>Реквізити:</strong><br>${requisites}` : `<strong>Коментар:</strong><br>${comment}`}
+                        </div>
+                        <div class="request-actions">
+                            <button class="primary-btn" ${isPending ? '' : 'disabled'} onclick="openRequestActionModal('${type}', ${item.id}, 'approve')">Підтвердити</button>
+                            <button class="ghost-btn danger" ${isPending ? '' : 'disabled'} onclick="openRequestActionModal('${type}', ${item.id}, 'reject')">Відхилити</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderStatusChip(status) {
+            const labelMap = {
+                pending: 'Очікує',
+                approved: 'Підтверджено',
+                rejected: 'Відхилено',
+                done: 'Виконано'
+            };
+            const normalized = (status || '').toLowerCase();
+            return `<span class="status-chip ${normalized || 'pending'}">${labelMap[normalized] || status || '—'}</span>`;
+        }
+
+        /* -------- Дії із заявками -------- */
+        const requestActionState = {
+            type: null,
+            id: null,
+            mode: 'approve'
+        };
+
+        function openRequestActionModal(type, id, mode = 'approve') {
+            requestActionState.type = type;
+            requestActionState.id = id;
+            requestActionState.mode = mode;
+            const modal = document.getElementById('requestActionModal');
+            if (!modal) return;
+            const title = document.getElementById('requestActionTitle');
+            const desc = document.getElementById('requestActionDescription');
+            const reasonContainer = document.getElementById('requestActionReasonContainer');
+            const reasonInput = document.getElementById('requestActionReason');
+            const penaltyContainer = document.getElementById('requestActionPenaltyContainer');
+            const penaltyInput = document.getElementById('requestActionPenalty');
+            const confirmBtn = document.getElementById('requestActionConfirmBtn');
+            const typeLabel = type === 'withdraw' ? 'виводу' : 'депозиту';
+
+            if (title) {
+                title.textContent = mode === 'approve'
+                    ? `Підтвердити заявку ${typeLabel}`
+                    : `Відхилити заявку ${typeLabel}`;
+            }
+            if (desc) {
+                desc.textContent = mode === 'approve'
+                    ? 'Підтвердіть, що заявка виконана.'
+                    : 'Вкажіть причину відхилення (необов’язково).';
+            }
+            if (reasonContainer) {
+                reasonContainer.style.display = mode === 'reject' ? 'block' : 'none';
+            }
+            if (reasonInput) {
+                reasonInput.value = '';
+            }
+            if (penaltyContainer) {
+                penaltyContainer.style.display = mode === 'reject' && type === 'withdraw' ? 'block' : 'none';
+            }
+            if (penaltyInput) {
+                penaltyInput.value = '';
+            }
+            if (confirmBtn) {
+                confirmBtn.textContent = mode === 'approve' ? 'Підтвердити' : 'Відхилити';
+            }
+            document.getElementById('requestActionStatus').innerHTML = '';
+            modal.style.display = 'flex';
+        }
+
+        function closeRequestActionModal() {
+            const modal = document.getElementById('requestActionModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        async function submitRequestAction() {
+            const statusBox = document.getElementById('requestActionStatus');
+            const reasonInput = document.getElementById('requestActionReason');
+            const { type, id, mode } = requestActionState;
+            if (!id) return;
+            statusBox.innerHTML = '<span style="color:#4facfe;">⏳ Обробка...</span>';
+            try {
+                let actionName;
+                const params = type === 'deposit' ? { deposit_id: id } : { withdrawal_id: id };
+                if (mode === 'approve') {
+                    actionName = type === 'deposit' ? 'approve_deposit' : 'approve_withdrawal';
+                } else {
+                    actionName = type === 'deposit' ? 'reject_deposit' : 'reject_withdrawal';
+                    params.reason = reasonInput ? reasonInput.value.trim() : '';
+                    const penaltyInput = document.getElementById('requestActionPenalty');
+                    if (penaltyInput && penaltyInput.value && type === 'withdraw') {
+                        const penaltyValue = parseFloat(penaltyInput.value.replace(',', '.'));
+                        if (!isNaN(penaltyValue) && penaltyValue > 0) {
+                            params.penalty_amount = penaltyValue;
+                        }
+                    }
+                }
+                await api.adminAction(actionName, params);
+                statusBox.innerHTML = '<span style="color:#4caf50;">✅ Успішно!</span>';
+                setTimeout(() => {
+                    closeRequestActionModal();
+                    loadRequests();
+                }, 600);
+            } catch (error) {
+                console.error('Error handling request action:', error);
+                statusBox.innerHTML = `<span style="color:#f44336;">${error.message}</span>`;
+            }
+        }
+        
+        async function loadMaintenanceStatus() {
+            try {
+                const response = await fetch('/api/admin/maintenance/status', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                const data = await response.json();
+                if (response.ok && data.status === 'ok') {
+                    updateMaintenanceButtonUI(data.enabled);
+                }
+            } catch (error) {
+                console.error('Error loading maintenance status:', error);
+            }
+        }
+        
+        function updateMaintenanceButtonUI(enabled) {
+            const button = document.getElementById('maintenanceButton');
+            const text = document.getElementById('maintenanceButtonText');
+            const chip = document.getElementById('maintenanceStatusChip');
+            if (!button || !text || !chip) return;
+            
+            button.classList.toggle('maintenance-on', enabled);
+            button.dataset.state = enabled ? 'on' : 'off';
+            text.textContent = enabled ? 'Вимкнути тех.роботи' : 'Увімкнути тех.роботи';
+            chip.textContent = enabled ? '🔧 Технічні роботи активні' : '✅ Технічні роботи вимкнені';
+            chip.classList.toggle('active', enabled);
+        }
+        
+        async function toggleMaintenanceMode() {
+            const button = document.getElementById('maintenanceButton');
+            if (button) {
+                button.classList.add('loading');
+            }
+            try {
+                const response = await fetch('/api/admin/maintenance/toggle', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                });
+                const data = await response.json();
+                if (response.ok && data.status === 'ok') {
+                    updateMaintenanceButtonUI(data.enabled);
+                    showAdminAlert(data.enabled ? '🔧 Технічні роботи увімкнено' : '✅ Технічні роботи вимкнено');
+                } else {
+                    showAdminAlert(data.error || 'Помилка перемикання режиму');
+                }
+            } catch (error) {
+                console.error('Error toggling maintenance:', error);
+                showAdminAlert('Помилка: ' + error.message);
+            } finally {
+                if (button) {
+                    button.classList.remove('loading');
+                }
+            }
+        }
+
+        // --- Бета-тестери ---
+        let betaListLoading = false;
+
+        function openBetaTestersModal() {
+            const modal = document.getElementById('betaTestersModal');
+            if (!modal) return;
+            modal.style.display = 'flex';
+            loadBetaTesters();
+        }
+
+        function closeBetaTestersModal() {
+            const modal = document.getElementById('betaTestersModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        function setBetaStatus(message, type) {
+            const statusEl = document.getElementById('betaListStatus');
+            if (!statusEl) return;
+            if (!message) {
+                statusEl.style.display = 'none';
+                statusEl.textContent = '';
+                statusEl.className = 'form-status';
+                return;
+            }
+            statusEl.style.display = 'block';
+            statusEl.textContent = message;
+            statusEl.className = `form-status ${type || ''}`;
+        }
+
+        function formatBetaTimestamp(ts) {
+            if (!ts) return '—';
+            const date = new Date(ts * 1000);
+            return date.toLocaleString('uk-UA');
+        }
+
+        function escapeHtmlAdmin(text) {
+            if (text === undefined || text === null) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function renderBetaTesterItem(tester) {
+            const name = escapeHtmlAdmin(tester.user_name || 'Користувач');
+            const username = tester.username ? '@' + escapeHtmlAdmin(tester.username) : '—';
+            const addedAt = tester.added_at ? formatBetaTimestamp(tester.added_at) : '—';
+            const lastActive = tester.last_active ? formatBetaTimestamp(tester.last_active) : 'немає даних';
+            return `
+                <div class="beta-list-item">
+                    <div>
+                        <div class="beta-user-name">${name} <span class="beta-user-id">ID: ${tester.user_id}</span></div>
+                        <div class="beta-user-meta">Username: ${username}</div>
+                        <div class="beta-user-meta">Додано: ${addedAt}</div>
+                        <div class="beta-user-meta">Остання активність: ${lastActive}</div>
+                    </div>
+                    <button class="ghost-btn danger" onclick="removeBetaTester(${tester.user_id})">Видалити</button>
+                </div>
+            `;
+        }
+
+        async function loadBetaTesters() {
+            if (betaListLoading) return;
+            const listEl = document.getElementById('betaTestersList');
+            const statsGrid = document.getElementById('betaStatsGrid');
+            if (!listEl) return;
+            betaListLoading = true;
+            listEl.innerHTML = `
+                <div class="loading-message" style="text-align: center; padding: 32px;">
+                    <div style="font-size: 42px; margin-bottom: 12px;">⏳</div>
+                    <div>Завантаження...</div>
+                </div>`;
+            try {
+                const response = await fetch('/api/admin/beta');
+                const data = await response.json();
+                if (response.ok && data.status === 'ok') {
+                    const testers = data.testers || [];
+                    if (statsGrid && data.stats) {
+                        document.getElementById('betaStatTotal').textContent = data.stats.total || 0;
+                        document.getElementById('betaStatActive12').textContent = data.stats.active_12h || 0;
+                        document.getElementById('betaStatActive24').textContent = data.stats.active_24h || 0;
+                        document.getElementById('betaStatInactive12').textContent = data.stats.inactive_12h || 0;
+                    }
+                    if (testers.length === 0) {
+                        listEl.innerHTML = '<div class="empty-state">Немає бета-тестерів</div>';
+                    } else {
+                        listEl.innerHTML = testers.map(renderBetaTesterItem).join('');
+                    }
+                    setBetaStatus('', null);
+                } else {
+                    throw new Error(data.error || 'Помилка завантаження');
+                }
+            } catch (error) {
+                console.error('Error loading beta testers:', error);
+                listEl.innerHTML = '<div class="error-message">Не вдалося завантажити список</div>';
+                setBetaStatus(error.message || 'Помилка завантаження', 'error');
+            } finally {
+                betaListLoading = false;
+            }
+        }
+
+        async function addBetaTester() {
+            const input = document.getElementById('betaAddInput');
+            const value = input ? input.value.trim() : '';
+            if (!value) {
+                setBetaStatus('Введіть ID або @username користувача', 'error');
+                return;
+            }
+            setBetaStatus('Додаємо тестера...', 'pending');
+            try {
+                const payload = { identifier: value };
+                if (/^\d+$/.test(value)) {
+                    payload.user_id = parseInt(value, 10);
+                }
+                const response = await fetch('/api/admin/beta/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+                if (response.ok && data.status === 'ok') {
+                    const suffix = data.user_name ? ` (${data.user_name})` : '';
+                    setBetaStatus(`✅ Додано бета-доступ для ID ${data.user_id}${suffix}`, 'success');
+                    if (input) input.value = '';
+                    loadBetaTesters();
+                } else {
+                    throw new Error(data.error || 'Помилка додавання');
+                }
+            } catch (error) {
+                console.error('Error adding beta tester:', error);
+                setBetaStatus(error.message || 'Помилка додавання', 'error');
+            }
+        }
+
+        async function removeBetaTester(userId) {
+            if (!confirm(`Видалити бета-доступ для користувача ${userId}?`)) {
+                return;
+            }
+            setBetaStatus('Видаляємо тестера...', 'pending');
+            try {
+                const response = await fetch('/api/admin/beta/remove', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: userId })
+                });
+                const data = await response.json();
+                if (response.ok && data.status === 'ok') {
+                    setBetaStatus('✅ Тестера видалено', 'success');
+                    loadBetaTesters();
+                } else {
+                    throw new Error(data.error || 'Помилка видалення');
+                }
+            } catch (error) {
+                console.error('Error removing beta tester:', error);
+                setBetaStatus(error.message || 'Помилка видалення', 'error');
+            }
+        }
+
+        async function cleanupBetaTesters() {
+            const hoursInput = document.getElementById('betaCleanupHours');
+            const hours = parseInt(hoursInput?.value || '24', 10) || 24;
+            setBetaStatus('Очищення списку...', 'pending');
+            try {
+                const response = await fetch('/api/admin/beta/cleanup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ hours })
+                });
+                const data = await response.json();
+                if (response.ok && data.status === 'ok') {
+                    setBetaStatus(`✅ Видалено ${data.removed || 0} тестерів`, 'success');
+                    loadBetaTesters();
+                } else {
+                    throw new Error(data.error || 'Помилка очищення');
+                }
+            } catch (error) {
+                console.error('Error cleaning beta testers:', error);
+                setBetaStatus(error.message || 'Помилка очищення', 'error');
+            }
+        }
+
+        async function notifyBetaTesters() {
+            const titleInput = document.getElementById('betaNotifyTitle');
+            const messageInput = document.getElementById('betaNotifyMessage');
+            const title = titleInput?.value.trim();
+            const message = messageInput?.value.trim();
+            if (!title || !message) {
+                setBetaStatus('Вкажіть заголовок і текст повідомлення', 'error');
+                return;
+            }
+            setBetaStatus('Надсилаємо повідомлення...', 'pending');
+            try {
+                const response = await fetch('/api/admin/beta/notify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, message })
+                });
+                const data = await response.json();
+                if (response.ok && data.status === 'ok') {
+                    setBetaStatus(`✅ Повідомлення отримали ${data.sent || 0} тестерів`, 'success');
+                    if (messageInput) messageInput.value = '';
+                    if (titleInput) titleInput.value = '';
+                } else {
+                    throw new Error(data.error || 'Помилка надсилання');
+                }
+            } catch (error) {
+                console.error('Error notifying beta testers:', error);
+                setBetaStatus(error.message || 'Помилка надсилання', 'error');
+            }
+        }
+        
+        // Обновление счетчика уведомлений
+        async function updateNotificationsBadge() {
+            try {
+                const data = await api.getUnreadNotificationsCount();
+                const badge = document.getElementById('notificationsBadge');
+                if (badge) {
+                    const count = data.unread_count || 0;
+                    if (count > 0) {
+                        badge.textContent = count > 99 ? '99+' : count;
+                        badge.style.display = 'block';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating notifications badge:', error);
+            }
+        }
+        
+        function setGardenStatus(element, message, type = 'info') {
+            if (!element) return;
+            if (!message) {
+                element.innerHTML = '';
+                return;
+            }
+            if (type === 'error') {
+                element.innerHTML = `<div class="error-message">${message}</div>`;
+            } else if (type === 'success') {
+                element.innerHTML = `<div class="success-message">${message}</div>`;
+            } else {
+                element.textContent = message;
+            }
+        }
+
+        function openGardenControlModal(defaultTab = 'trees') {
+            const modal = document.getElementById('gardenControlModal');
+            if (!modal) return;
+            modal.style.display = 'flex';
+            switchGardenControlTab(defaultTab);
+            if (defaultTab === 'trees') {
+                refreshGardenTreeSettings();
+            } else if (defaultTab === 'fruits') {
+                refreshGardenFruitSettings();
+            }
+        }
+
+        function closeGardenControlModal() {
+            const modal = document.getElementById('gardenControlModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        function switchGardenControlTab(tab) {
+            gardenControlActiveTab = tab;
+            const mapping = {
+                trees: 'gardenTabTrees',
+                fruits: 'gardenTabFruits',
+                users: 'gardenTabUsers'
+            };
+            Object.entries(mapping).forEach(([key, panelId]) => {
+                const panel = document.getElementById(panelId);
+                if (panel) {
+                    panel.style.display = key === tab ? 'block' : 'none';
+                    panel.classList.toggle('active', key === tab);
+                }
+                const button = document.getElementById(`gardenTabButton-${key}`);
+                if (button) {
+                    button.classList.toggle('active', key === tab);
+                }
+            });
+            if (tab === 'trees') {
+                if (!gardenTreeSettings.length) refreshGardenTreeSettings();
+            } else if (tab === 'fruits') {
+                if (!gardenFruitSettings.length) refreshGardenFruitSettings();
+            } else if (tab === 'users') {
+                if (!gardenTreeSettings.length) refreshGardenTreeSettings();
+                if (!gardenFruitSettings.length) refreshGardenFruitSettings();
+            }
+        }
+
+        async function refreshGardenTreeSettings() {
+            const status = document.getElementById('gardenTreeSettingsStatus');
+            setGardenStatus(status, '⏳ Завантаження...');
+            try {
+                const data = await api.getAdminTreeSettings();
+                gardenTreeSettings = data.prices || [];
+                renderGardenTreeSettings();
+                populateGardenSelectors();
+                setGardenStatus(status, gardenTreeSettings.length ? 'Оновлено' : 'Немає даних', 'info');
+            } catch (error) {
+                console.error('Error loading tree settings:', error);
+                setGardenStatus(status, 'Помилка: ' + error.message, 'error');
+            }
+        }
+
+        function renderGardenTreeSettings() {
+            const grid = document.getElementById('gardenTreeSettingsGrid');
+            if (!grid) return;
+            if (!gardenTreeSettings.length) {
+                grid.innerHTML = '<div class="empty-message" style="grid-column: 1 / -1;">Немає даних.</div>';
+                return;
+            }
+            grid.innerHTML = gardenTreeSettings.map(tree => `
+                <div class="garden-card">
+                    <div class="garden-card-head">
+                        <span class="garden-card-emoji">${tree.emoji}</span>
+                        <div>
+                            <div class="garden-card-title">${tree.name}</div>
+                            <div class="garden-card-subtitle">База: ${formatCurrency(tree.base_price)}₴ / ${formatNumber(tree.base_income, 2)} фр/год</div>
+                        </div>
+                    </div>
+                    <label class="input-label">
+                        Ціна, ₴
+                        <input type="number" class="input-field" min="0" step="0.01" id="treePriceInput-${tree.type}" value="${formatNumber(tree.price, 2)}">
+                    </label>
+                    <label class="input-label">
+                        Дохід (фрукти/год)
+                        <input type="number" class="input-field" min="0" step="0.1" id="treeIncomeInput-${tree.type}" value="${formatNumber(tree.configured_income ?? tree.base_income, 2)}">
+                    </label>
+                    <button class="primary-btn" onclick="saveGardenTreeSetting('${tree.type}')">Зберегти</button>
+                </div>
+            `).join('');
+        }
+
+        async function saveGardenTreeSetting(treeType) {
+            const status = document.getElementById('gardenTreeSettingsStatus');
+            const priceInput = document.getElementById(`treePriceInput-${treeType}`);
+            const incomeInput = document.getElementById(`treeIncomeInput-${treeType}`);
+            const payload = {};
+            if (priceInput && priceInput.value !== '') {
+                const price = parseFloat(priceInput.value);
+                if (!isNaN(price)) payload.price = price;
+            }
+            if (incomeInput && incomeInput.value !== '') {
+                const income = parseFloat(incomeInput.value);
+                if (!isNaN(income)) payload.income = income;
+            }
+            if (!Object.keys(payload).length) {
+                setGardenStatus(status, 'Введіть значення для збереження', 'error');
+                return;
+            }
+            try {
+                await api.updateAdminTreeSetting(treeType, payload);
+                setGardenStatus(status, 'Зміни збережено', 'success');
+                await refreshGardenTreeSettings();
+            } catch (error) {
+                console.error('Error saving tree setting:', error);
+                setGardenStatus(status, 'Помилка: ' + error.message, 'error');
+            }
+        }
+
+        async function refreshGardenFruitSettings() {
+            const status = document.getElementById('gardenFruitSettingsStatus');
+            setGardenStatus(status, '⏳ Завантаження...');
+            try {
+                const data = await api.getAdminFruitSettings();
+                gardenFruitSettings = data.prices || [];
+                renderGardenFruitSettings();
+                populateGardenSelectors();
+                setGardenStatus(status, gardenFruitSettings.length ? 'Оновлено' : 'Немає даних', 'info');
+            } catch (error) {
+                console.error('Error loading fruit settings:', error);
+                setGardenStatus(status, 'Помилка: ' + error.message, 'error');
+            }
+        }
+
+        function renderGardenFruitSettings() {
+            const grid = document.getElementById('gardenFruitSettingsGrid');
+            if (!grid) return;
+            if (!gardenFruitSettings.length) {
+                grid.innerHTML = '<div class="empty-message" style="grid-column: 1 / -1;">Немає даних.</div>';
+                return;
+            }
+            grid.innerHTML = gardenFruitSettings.map(fruit => `
+                <div class="garden-card">
+                    <div class="garden-card-head">
+                        <span class="garden-card-emoji">${fruit.emoji}</span>
+                        <div>
+                            <div class="garden-card-title">${fruit.name}</div>
+                            <div class="garden-card-subtitle">Тип: ${fruit.type}</div>
+                        </div>
+                    </div>
+                    <label class="input-label">
+                        Ціна, ₴/шт
+                        <input type="number" class="input-field" min="0" step="0.01" id="fruitPriceInput-${fruit.type}" value="${formatNumber(fruit.price, 2)}">
+                    </label>
+                    <button class="primary-btn" onclick="saveGardenFruitSetting('${fruit.type}')">Зберегти</button>
+                </div>
+            `).join('');
+        }
+
+        async function saveGardenFruitSetting(fruitType) {
+            const status = document.getElementById('gardenFruitSettingsStatus');
+            const input = document.getElementById(`fruitPriceInput-${fruitType}`);
+            if (!input || input.value === '') {
+                setGardenStatus(status, 'Введіть ціну', 'error');
+                return;
+            }
+            const price = parseFloat(input.value);
+            if (isNaN(price) || price < 0) {
+                setGardenStatus(status, 'Некоректна ціна', 'error');
+                return;
+            }
+            try {
+                await api.updateAdminFruitPrice(fruitType, price);
+                setGardenStatus(status, 'Ціну оновлено', 'success');
+                await refreshGardenFruitSettings();
+            } catch (error) {
+                console.error('Error saving fruit price:', error);
+                setGardenStatus(status, 'Помилка: ' + error.message, 'error');
+            }
+        }
+
+        async function searchGardenUser() {
+            const input = document.getElementById('gardenUserSearchInput');
+            const status = document.getElementById('gardenUserActionStatus');
+            const userId = parseInt(input.value);
+            if (!userId || isNaN(userId)) {
+                setGardenStatus(status, 'Введіть коректний ID', 'error');
+                return;
+            }
+            setGardenStatus(status, '⏳ Завантаження...');
+            try {
+                const data = await api.getAdminGardenUser(userId);
+                gardenSelectedUser = data;
+                renderGardenUserInfo(data);
+                populateGardenSelectors();
+                setGardenStatus(status, 'Дані користувача оновлено', 'success');
+            } catch (error) {
+                console.error('Error loading garden user:', error);
+                gardenSelectedUser = null;
+                renderGardenUserInfo(null);
+                setGardenStatus(status, 'Помилка: ' + error.message, 'error');
+            }
+        }
+
+        function renderGardenUserInfo(data) {
+            const block = document.getElementById('gardenUserInfoBlock');
+            if (!block) return;
+            if (!data) {
+                block.classList.add('empty-state');
+                block.innerHTML = '<p>Введіть ID користувача, щоб переглянути сад.</p>';
+                return;
+            }
+            block.classList.remove('empty-state');
+            const totalTrees = Object.values(data.tree_counts || {}).reduce((sum, value) => sum + (value || 0), 0);
+            const treesList = Object.entries(data.tree_counts || {}).map(([type, count]) => {
+                const meta = adminTreeMeta[type] || { name: type, emoji: '🌳' };
+                return `<li>${meta.emoji} ${meta.name}: <b>${count}</b> шт</li>`;
+            }).join('') || '<li>Немає дерев</li>';
+            const fruitsList = (data.fruits || []).map(fruit => {
+                const meta = adminFruitMeta[fruit.type] || { name: fruit.type, emoji: '🍎' };
+                return `<li>${meta.emoji} ${meta.name}: <b>${formatCurrency(fruit.amount)}</b> шт (${formatCurrency(fruit.value)}₴)</li>`;
+            }).join('') || '<li>Немає фруктів</li>';
+            block.innerHTML = `
+                <div class="garden-user-header">
+                    <div>
+                        <div class="garden-user-name">${data.user_name || 'ID ' + data.user_id}</div>
+                        <div class="garden-user-id">ID: ${data.user_id}</div>
+                    </div>
+                    <div class="garden-user-level">
+                        <span>Рівень ${data.garden_level}</span>
+                        <small>${data.level_info?.name || ''}</small>
+                    </div>
+                </div>
+                <div class="garden-user-stats-grid">
+                    <div class="stat-chip"><span>Дерев</span>${totalTrees}</div>
+                    <div class="stat-chip"><span>Фрукти (₴)</span>${formatCurrency(data.fruits_total_value || 0)}</div>
+                    <div class="stat-chip"><span>Бонус</span>+${data.level_info?.bonus_percent || 0}%</div>
+                    <div class="stat-chip"><span>Комісія</span>${data.level_info?.commission_percent || 15}%</div>
+                </div>
+                <div class="garden-user-lists">
+                    <div>
+                        <h4>Дерева</h4>
+                        <ul>${treesList}</ul>
+                    </div>
+                    <div>
+                        <h4>Фрукти</h4>
+                        <ul>${fruitsList}</ul>
+                    </div>
+                </div>
+            `;
+        }
+
+        function populateGardenSelectors() {
+            const addTreeSelect = document.getElementById('gardenAddTreeType');
+            if (addTreeSelect) {
+                addTreeSelect.innerHTML = '<option value="">Оберіть дерево</option>' + gardenTreeSettings.map(tree => `<option value="${tree.type}">${tree.emoji} ${tree.name}</option>`).join('');
+            }
+            const removeTreeSelect = document.getElementById('gardenRemoveTreeType');
+            if (removeTreeSelect) {
+                const options = [];
+                if (gardenSelectedUser?.tree_counts) {
+                    Object.entries(gardenSelectedUser.tree_counts).forEach(([type, count]) => {
+                        if (count > 0) {
+                            const meta = adminTreeMeta[type] || { name: type, emoji: '🌳' };
+                            options.push(`<option value="${type}">${meta.emoji} ${meta.name} (${count} шт)</option>`);
+                        }
+                    });
+                }
+                removeTreeSelect.innerHTML = '<option value="">Оберіть дерево</option>' + options.join('');
+            }
+
+            const addFruitSelect = document.getElementById('gardenAddFruitType');
+            if (addFruitSelect) {
+                addFruitSelect.innerHTML = '<option value="">Оберіть фрукт</option>' + gardenFruitSettings.map(fruit => `<option value="${fruit.type}">${fruit.emoji} ${fruit.name}</option>`).join('');
+            }
+            const removeFruitSelect = document.getElementById('gardenRemoveFruitType');
+            if (removeFruitSelect) {
+                const options = [];
+                if (gardenSelectedUser?.fruits) {
+                    gardenSelectedUser.fruits.forEach(fruit => {
+                        if (fruit.amount > 0) {
+                            const meta = adminFruitMeta[fruit.type] || { name: fruit.type, emoji: '🍎' };
+                            options.push(`<option value="${fruit.type}">${meta.emoji} ${meta.name} (${formatCurrency(fruit.amount)} шт)</option>`);
+                        }
+                    });
+                }
+                removeFruitSelect.innerHTML = '<option value="">Оберіть фрукт</option>' + options.join('');
+            }
+        }
+
+        async function submitGardenUserAction(action) {
+            const status = document.getElementById('gardenUserActionStatus');
+            if (!gardenSelectedUser) {
+                setGardenStatus(status, 'Спочатку знайдіть користувача', 'error');
+                return;
+            }
+            const userId = gardenSelectedUser.user_id;
+            try {
+                if (action === 'set_level') {
+                    const level = parseInt(document.getElementById('gardenSetLevelInput').value);
+                    const reason = document.getElementById('gardenSetLevelReason').value || '';
+                    if (isNaN(level) || level < 0) {
+                        setGardenStatus(status, 'Некоректний рівень', 'error');
+                        return;
+                    }
+                    await api.adminSetGardenLevel(userId, level, reason);
+                    setGardenStatus(status, 'Рівень оновлено', 'success');
+                } else if (action === 'add_tree') {
+                    const treeType = document.getElementById('gardenAddTreeType').value;
+                    const count = parseInt(document.getElementById('gardenAddTreeCount').value);
+                    if (!treeType || isNaN(count) || count <= 0) {
+                        setGardenStatus(status, 'Вкажіть дерево та кількість', 'error');
+                        return;
+                    }
+                    await api.adminAddGardenTree(userId, treeType, count);
+                    setGardenStatus(status, 'Дерева додано', 'success');
+                } else if (action === 'remove_tree') {
+                    const treeType = document.getElementById('gardenRemoveTreeType').value;
+                    const count = parseInt(document.getElementById('gardenRemoveTreeCount').value);
+                    if (!treeType || isNaN(count) || count <= 0) {
+                        setGardenStatus(status, 'Вкажіть дерево та кількість', 'error');
+                        return;
+                    }
+                    await api.adminRemoveGardenTree(userId, treeType, count);
+                    setGardenStatus(status, 'Дерева видалено', 'success');
+                } else if (action === 'add_fruit') {
+                    const fruitType = document.getElementById('gardenAddFruitType').value;
+                    const amount = parseFloat(document.getElementById('gardenAddFruitAmount').value);
+                    if (!fruitType || isNaN(amount) || amount <= 0) {
+                        setGardenStatus(status, 'Вкажіть фрукт та кількість', 'error');
+                        return;
+                    }
+                    await api.adminAddGardenFruit(userId, fruitType, amount);
+                    setGardenStatus(status, 'Фрукти додано', 'success');
+                } else if (action === 'remove_fruit') {
+                    const fruitType = document.getElementById('gardenRemoveFruitType').value;
+                    const amount = parseFloat(document.getElementById('gardenRemoveFruitAmount').value);
+                    if (!fruitType || isNaN(amount) || amount <= 0) {
+                        setGardenStatus(status, 'Вкажіть фрукт та кількість', 'error');
+                        return;
+                    }
+                    await api.adminRemoveGardenFruit(userId, fruitType, amount);
+                    setGardenStatus(status, 'Фрукти списано', 'success');
+                }
+                await searchGardenUser();
+            } catch (error) {
+                console.error('Error executing garden action:', error);
+                setGardenStatus(status, 'Помилка: ' + error.message, 'error');
+            }
+        }
+
+        /* -------- Новини та брендинг -------- */
+        async function openNewsCenterModal() {
+            const modal = document.getElementById('newsCenterModal');
+            if (!modal) return;
+            modal.style.display = 'flex';
+            setNewsAdminStatus('⏳ Завантаження новин...', 'pending');
+            await loadAdminNews();
+        }
+
+        function closeNewsCenterModal() {
+            const modal = document.getElementById('newsCenterModal');
+            if (modal) modal.style.display = 'none';
+            resetNewsForm();
+            setNewsAdminStatus('', 'success');
+        }
+
+        function setNewsAdminStatus(message, type = 'info') {
+            const status = document.getElementById('newsAdminStatus');
+            if (!status) return;
+            if (message) {
+                status.textContent = message;
+                status.className = `form-status ${type}`;
+                status.style.display = 'block';
+                status.style.visibility = 'visible';
+                status.style.opacity = '1';
+            } else {
+                status.style.display = 'none';
+            }
+        }
+
+        async function loadAdminNews(silent = false) {
+            const list = document.getElementById('newsAdminList');
+            if (list) list.innerHTML = '<p class="empty-message">⏳ Завантаження...</p>';
+            try {
+                const data = await api.getAdminNews(100, true);
+                console.log('[News] Loaded data:', data);
+                adminNewsList = Array.isArray(data.news) ? data.news : [];
+                console.log('[News] Parsed news list length:', adminNewsList.length);
+                console.log('[News] First news item:', adminNewsList[0]);
+                renderAdminNewsList();
+                if (!silent) {
+                    if (adminNewsList.length > 0) {
+                        console.log(`[News] Displaying ${adminNewsList.length} news items`);
+                    } else {
+                        setNewsAdminStatus('📭 Ще немає новин', 'info');
+                    }
+                }
+            } catch (error) {
+                console.error('[News] Error loading admin news:', error);
+                if (list) list.innerHTML = '<p class="empty-message">Не вдалося завантажити новини</p>';
+                if (!silent) {
+                    setNewsAdminStatus('❌ Помилка завантаження: ' + (error.message || 'невідомо'), 'error');
+                }
+            }
+        }
+
+        function renderAdminNewsList() {
+            const list = document.getElementById('newsAdminList');
+            if (!list) return;
+            if (!adminNewsList.length) {
+                list.innerHTML = '<p class="empty-message">Новин поки немає</p>';
+                return;
+            }
+            list.innerHTML = adminNewsList.map(item => `
+                <div class="news-admin-card">
+                    <div class="news-admin-card-header">
+                        <div>
+                            <h4>${escapeHtml(item.title)}</h4>
+                            <span>${formatDateTimeFromTs(item.created_at)}</span>
+                        </div>
+                        <span class="status-chip ${item.status === 'draft' ? 'pending' : 'done'}">
+                            ${item.status === 'draft' ? 'Чернетка' : 'Опубліковано'}
+                        </span>
+                    </div>
+                    <p class="news-admin-card-text">${escapeHtml(item.content || '').slice(0, 180)}${item.content && item.content.length > 180 ? '…' : ''}</p>
+                    <div class="news-admin-meta">
+                        <span>👁 ${item.views || 0}</span>
+                        <span>💙 ${item.likes || 0}</span>
+                        ${item.pinned ? '<span class="status-chip">📌 Закріплено</span>' : ''}
+                    </div>
+                    <div class="news-admin-actions">
+                        <button class="secondary-btn" onclick="editNews(${item.id})">Редагувати</button>
+                        <button class="ghost-btn danger" onclick="deleteNewsEntry(${item.id})">Видалити</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function resetNewsForm() {
+            adminNewsEditingId = null;
+            const fields = ['newsFormId', 'newsFormTitle', 'newsFormContent', 'newsFormCover', 'newsFormCtaLabel', 'newsFormCtaUrl'];
+            fields.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+            const statusSelect = document.getElementById('newsFormStatus');
+            if (statusSelect) statusSelect.value = 'published';
+            const pinned = document.getElementById('newsFormPinned');
+            if (pinned) pinned.checked = false;
+            setNewsAdminStatus('Створіть нову новину або оберіть існуючу для редагування.', 'info');
+        }
+
+        function editNews(newsId) {
+            const item = adminNewsList.find(n => Number(n.id) === Number(newsId));
+            if (!item) return;
+            adminNewsEditingId = item.id;
+            document.getElementById('newsFormId').value = item.id;
+            document.getElementById('newsFormTitle').value = item.title || '';
+            document.getElementById('newsFormContent').value = item.content || '';
+            document.getElementById('newsFormCover').value = item.cover_url || '';
+            document.getElementById('newsFormCtaLabel').value = item.cta_label || '';
+            document.getElementById('newsFormCtaUrl').value = item.cta_url || '';
+            document.getElementById('newsFormStatus').value = item.status || 'published';
+            document.getElementById('newsFormPinned').checked = !!item.pinned;
+            setNewsAdminStatus(`Редагування новини #${item.id}`, 'pending');
+        }
+
+        async function submitNewsForm() {
+            const coverValue = document.getElementById('newsFormCover').value.trim();
+            const ctaLabelValue = document.getElementById('newsFormCtaLabel').value.trim();
+            const ctaUrlValue = document.getElementById('newsFormCtaUrl').value.trim();
+            const payload = {
+                title: document.getElementById('newsFormTitle').value.trim(),
+                content: document.getElementById('newsFormContent').value.trim(),
+                cover_url: coverValue || null,
+                cta_label: ctaLabelValue || null,
+                cta_url: ctaUrlValue || null,
+                status: document.getElementById('newsFormStatus').value || 'published',
+                pinned: document.getElementById('newsFormPinned').checked
+            };
+            if (!payload.title || !payload.content) {
+                setNewsAdminStatus('Заповніть заголовок та текст новини', 'error');
+                return;
+            }
+            setNewsAdminStatus('⏳ Зберігаємо...', 'pending');
+            try {
+                let result;
+                if (adminNewsEditingId) {
+                    result = await api.updateAdminNews(adminNewsEditingId, payload);
+                    console.log('[News] Update result:', result);
+                    setNewsAdminStatus('✅ Новину оновлено успішно!', 'success');
+                } else {
+                    result = await api.createAdminNews(payload);
+                    console.log('[News] Create result:', result);
+                    if (!result) {
+                        throw new Error('Сервер не повернув результат');
+                    }
+                    if (result.error) {
+                        throw new Error(result.error);
+                    }
+                    const newsId = result.news_id || (result.news && result.news.id);
+                    if (newsId) {
+                        setNewsAdminStatus(`✅ Новину #${newsId} опубліковано успішно!`, 'success');
+                    } else {
+                        setNewsAdminStatus('✅ Новину опубліковано успішно!', 'success');
+                    }
+                }
+                resetNewsForm();
+                console.log('[News] Reloading news list...');
+                await loadAdminNews(true);
+                console.log('[News] News list reloaded, adminNewsList length:', adminNewsList.length);
+                // Проверяем, что новость появилась в списке
+                if (result && result.news_id) {
+                    const found = adminNewsList.find(n => Number(n.id) === Number(result.news_id));
+                    if (found) {
+                        console.log('[News] ✅ News found in list:', found);
+                    } else {
+                        console.warn('[News] ⚠️ News not found in list after creation!');
+                        setNewsAdminStatus('⚠️ Новину створено, але вона не відображається. Спробуйте оновити список.', 'error');
+                    }
+                }
+            } catch (error) {
+                console.error('[News] Error saving news:', error);
+                console.error('[News] Error details:', {
+                    message: error.message,
+                    status: error.status,
+                    stack: error.stack
+                });
+                setNewsAdminStatus('❌ Помилка: ' + (error.message || 'невідомо'), 'error');
+            }
+        }
+
+        async function deleteNewsEntry(newsId) {
+            if (!confirm('Видалити цю новину?')) return;
+            setNewsAdminStatus('⏳ Видалення...', 'pending');
+            try {
+                await api.deleteAdminNews(newsId);
+                adminNewsList = adminNewsList.filter(n => Number(n.id) !== Number(newsId));
+                renderAdminNewsList();
+                setNewsAdminStatus('Новину видалено', 'success');
+            } catch (error) {
+                console.error('Error deleting news:', error);
+                setNewsAdminStatus('Помилка: ' + (error.message || 'невідомо'), 'error');
+            }
+        }
+
+        async function openBrandingModal() {
+            const modal = document.getElementById('brandingModal');
+            if (!modal) return;
+            modal.style.display = 'flex';
+            setBrandingStatus('⏳ Завантажуємо налаштування...', 'pending');
+            try {
+                adminBrandingCache = await api.getBrandingSettings();
+                populateBrandingForm(adminBrandingCache);
+                setBrandingStatus('Оновіть поля та натисніть «Зберегти».', 'success');
+            } catch (error) {
+                console.error('Error loading branding:', error);
+                setBrandingStatus('Помилка завантаження: ' + (error.message || 'невідомо'), 'error');
+            }
+        }
+
+        function closeBrandingModal() {
+            const modal = document.getElementById('brandingModal');
+            if (modal) modal.style.display = 'none';
+            setBrandingStatus('', 'success');
+        }
+
+        function populateBrandingForm(data = {}) {
+            const mapping = [
+                ['brandingHeroBadge', 'hero_badge'],
+                ['brandingHeroTitle', 'hero_title'],
+                ['brandingHeroSubtitle', 'hero_subtitle'],
+                ['brandingHeroCtaPrimary', 'hero_cta_primary'],
+                ['brandingHeroCtaSecondary', 'hero_cta_secondary'],
+                ['brandingChannelTitle', 'channel_title'],
+                ['brandingChannelDescription', 'channel_description'],
+                ['brandingChannelUrl', 'channel_url'],
+                ['brandingChannelCta', 'channel_cta'],
+                ['brandingNewsTitle', 'news_widget_title'],
+                ['brandingNewsHint', 'news_widget_hint'],
+                ['brandingLegalText', 'legal_text'],
+            ];
+            mapping.forEach(([inputId, key]) => {
+                const el = document.getElementById(inputId);
+                if (el) el.value = data[key] || '';
+            });
+        }
+
+        async function saveBrandingSettings() {
+            setBrandingStatus('⏳ Зберігаємо...', 'pending');
+            try {
+                const payload = {
+                    hero_badge: document.getElementById('brandingHeroBadge').value.trim(),
+                    hero_title: document.getElementById('brandingHeroTitle').value.trim(),
+                    hero_subtitle: document.getElementById('brandingHeroSubtitle').value.trim(),
+                    hero_cta_primary: document.getElementById('brandingHeroCtaPrimary').value.trim(),
+                    hero_cta_secondary: document.getElementById('brandingHeroCtaSecondary').value.trim(),
+                    channel_title: document.getElementById('brandingChannelTitle').value.trim(),
+                    channel_description: document.getElementById('brandingChannelDescription').value.trim(),
+                    channel_url: document.getElementById('brandingChannelUrl').value.trim(),
+                    channel_cta: document.getElementById('brandingChannelCta').value.trim(),
+                    news_widget_title: document.getElementById('brandingNewsTitle').value.trim(),
+                    news_widget_hint: document.getElementById('brandingNewsHint').value.trim(),
+                    legal_text: document.getElementById('brandingLegalText').value.trim()
+                };
+                await api.updateBrandingSettings(payload);
+                setBrandingStatus('Зміни збережено. Оновіть веб-додаток щоб побачити результат.', 'success');
+            } catch (error) {
+                console.error('Error saving branding:', error);
+                setBrandingStatus('Помилка збереження: ' + (error.message || 'невідомо'), 'error');
+            }
+        }
+
+        function setBrandingStatus(message, type = 'info') {
+            const status = document.getElementById('brandingStatus');
+            if (!status) return;
+            status.textContent = message || '';
+            status.className = `form-status ${type}`;
+            status.style.display = message ? 'block' : 'none';
+        }
+
+        /* -------- Подарунки -------- */
+        let giftSettingsState = null;
+
+        async function openGiftSettingsModal() {
+            const modal = document.getElementById('giftSettingsModal');
+            if (!modal) return;
+            modal.style.display = 'flex';
+            setGiftSettingsStatus('⏳ Завантаження...', 'pending');
+            await loadGiftSettings();
+        }
+
+        function closeGiftSettingsModal() {
+            const modal = document.getElementById('giftSettingsModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function setGiftSettingsStatus(message, type = 'info') {
+            const status = document.getElementById('giftSettingsStatus');
+            if (!status) return;
+            if (!message) {
+                status.innerHTML = '';
+                return;
+            }
+            const colors = {
+                pending: '#4facfe',
+                success: '#4caf50',
+                error: '#f44336',
+                info: '#b0b8d2'
+            };
+            status.innerHTML = `<span style="color:${colors[type] || colors.info};">${message}</span>`;
+        }
+
+        async function loadGiftSettings() {
+            try {
+                const data = await api.getAdminGiftSettings();
+                giftSettingsState = data;
+                populateGiftBasic(data);
+                renderGiftLevels(data.levels || []);
+                setGiftSettingsStatus('Налаштування завантажено', 'success');
+            } catch (error) {
+                console.error('Error loading gift settings:', error);
+                setGiftSettingsStatus('Помилка завантаження: ' + error.message, 'error');
+            }
+        }
+
+        function populateGiftBasic(data) {
+            const bombsInput = document.getElementById('giftBombsInput');
+            const cooldownInput = document.getElementById('giftCooldownInput');
+            if (bombsInput) bombsInput.value = data.bombs_count ?? 2;
+            if (cooldownInput) cooldownInput.value = data.cooldown_hours ?? 24;
+            const taglist = document.getElementById('giftLevelsTaglist');
+            if (taglist) {
+                taglist.innerHTML = (data.levels || []).map(level => `
+                    <button type="button" onclick="scrollToGiftLevel(${level.level})">Рівень ${level.level}</button>
+                `).join('');
+            }
+        }
+
+        function renderGiftLevels(levels) {
+            const container = document.getElementById('giftLevelsContainer');
+            if (!container) return;
+            if (!levels.length) {
+                container.innerHTML = '<div class="requests-empty" style="margin:0;">Немає даних</div>';
+                return;
+            }
+            container.innerHTML = levels.map(level => `
+                <div class="gift-level-card" data-gift-level="${level.level}">
+                    <div class="gift-level-header">
+                        <div>
+                            <h3>Рівень ${level.level}</h3>
+                            <span>${level.attempts} спроб</span>
+                        </div>
+                        <button class="ghost-btn" onclick="regenerateGiftLevel(${level.level})">🔁 Перерахувати винагороди</button>
+                    </div>
+                    <div class="gift-level-grid">
+                        <label>Спроб за сесію</label>
+                        <input type="number" class="input-field" min="1" step="1" value="${level.attempts}" data-field="attempts">
+                        <label>Базова виплата, ₴</label>
+                        <input type="number" class="input-field" min="0" step="0.01" value="${formatCurrency(level.reward_balance)}" data-field="reward_balance">
+                        <label>Тип фруктів</label>
+                        <select class="input-field" data-field="fruit_type">
+                            ${renderFruitOptions(level.fruit_type)}
+                        </select>
+                        <label>К-ть фруктів</label>
+                        <input type="number" class="input-field" min="0" step="0.1" value="${level.fruit_amount}" data-field="fruit_amount">
+                        <button class="primary-btn" onclick="saveGiftLevel(${level.level})">Зберегти рівень</button>
+                    </div>
+                    <div class="gift-level-rewards" id="giftLevelRewards-${level.level}">
+                        ${renderGiftLevelRewards(level)}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderFruitOptions(selected) {
+            const fruits = [
+                { type: 'apple', label: 'Яблуко' },
+                { type: 'pear', label: 'Груша' },
+                { type: 'cherry', label: 'Вишня' },
+                { type: 'peach', label: 'Персик' },
+                { type: 'golden_apple', label: 'Золоте яблуко' }
+            ];
+            return fruits.map(fruit => `
+                <option value="${fruit.type}" ${fruit.type === selected ? 'selected' : ''}>${fruit.label}</option>
+            `).join('');
+        }
+
+        function renderGiftLevelRewards(level) {
+            const rewards = level.rewards || [];
+            if (!rewards.length) {
+                return '<div class="requests-empty" style="margin:0;">Немає налаштованих винагород</div>';
+            }
+            return `
+                <div class="gift-rewards-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Спроба</th>
+                                <th>UAH</th>
+                                <th>Фрукт</th>
+                                <th>К-ть</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rewards.map(reward => `
+                                <tr>
+                                    <td>${reward.attempt_number}</td>
+                                    <td><input type="number" class="input-field" min="0" step="0.01" value="${formatCurrency(reward.reward_balance)}" data-attempt-field="reward_balance" data-attempt="${reward.attempt_number}"></td>
+                                    <td>
+                                        <select class="input-field" data-attempt-field="fruit_type" data-attempt="${reward.attempt_number}">
+                                            ${renderFruitOptions(reward.fruit_type)}
+                                        </select>
+                                    </td>
+                                    <td><input type="number" class="input-field" min="0" step="0.1" value="${reward.fruit_amount}" data-attempt-field="fruit_amount" data-attempt="${reward.attempt_number}"></td>
+                                    <td><button class="secondary-btn" onclick="saveGiftAttempt(${level.level}, ${reward.attempt_number})">💾</button></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        async function saveGiftBasicSettings() {
+            const bombs = parseInt(document.getElementById('giftBombsInput')?.value, 10);
+            const cooldown = parseInt(document.getElementById('giftCooldownInput')?.value, 10);
+            const resetSessions = document.getElementById('giftResetSessions')?.checked;
+            const resetCooldowns = document.getElementById('giftResetCooldowns')?.checked;
+            try {
+                await api.updateAdminGiftSettings({
+                    action: 'basic',
+                    bombs_count: bombs,
+                    cooldown_hours: cooldown,
+                    reset_sessions: resetSessions,
+                    reset_cooldowns: resetCooldowns
+                });
+                setGiftSettingsStatus('Базові налаштування збережено', 'success');
+                await loadGiftSettings();
+            } catch (error) {
+                console.error('Error saving gift basic settings:', error);
+                setGiftSettingsStatus('Помилка: ' + error.message, 'error');
+            }
+        }
+
+        async function saveGiftLevel(level) {
+            const card = document.querySelector(`.gift-level-card[data-gift-level="${level}"]`);
+            if (!card) return;
+            const data = {
+                action: 'level',
+                level,
+                attempts: parseInt(card.querySelector('[data-field="attempts"]')?.value || '0', 10),
+                reward_balance: parseFloat(card.querySelector('[data-field="reward_balance"]')?.value || '0'),
+                fruit_type: card.querySelector('[data-field="fruit_type"]')?.value || 'apple',
+                fruit_amount: parseFloat(card.querySelector('[data-field="fruit_amount"]')?.value || '0')
+            };
+            try {
+                await api.updateAdminGiftSettings(data);
+                setGiftSettingsStatus(`Рівень ${level} збережено`, 'success');
+                await loadGiftSettings();
+            } catch (error) {
+                console.error('Error saving gift level:', error);
+                setGiftSettingsStatus('Помилка: ' + error.message, 'error');
+            }
+        }
+
+        async function regenerateGiftLevel(level) {
+            try {
+                await api.updateAdminGiftSettings({
+                    action: 'level',
+                    level,
+                    regenerate_rewards: true
+                });
+                setGiftSettingsStatus(`Винагороди для рівня ${level} перераховано`, 'success');
+                await loadGiftSettings();
+            } catch (error) {
+                console.error('Error regenerating gift level:', error);
+                setGiftSettingsStatus('Помилка: ' + error.message, 'error');
+            }
+        }
+
+        async function saveGiftAttempt(level, attempt) {
+            const card = document.querySelector(`.gift-level-card[data-gift-level="${level}"]`);
+            if (!card) return;
+            const rowSelector = `[data-attempt="${attempt}"]`;
+            const rewardInput = card.querySelector(`input[data-attempt-field="reward_balance"]${rowSelector}`);
+            const fruitType = card.querySelector(`select[data-attempt-field="fruit_type"]${rowSelector}`);
+            const fruitAmount = card.querySelector(`input[data-attempt-field="fruit_amount"]${rowSelector}`);
+            try {
+                await api.updateAdminGiftSettings({
+                    action: 'attempt',
+                    level,
+                    attempt_number: attempt,
+                    reward_balance: parseFloat(rewardInput?.value || '0'),
+                    fruit_type: fruitType?.value || 'apple',
+                    fruit_amount: parseFloat(fruitAmount?.value || '0')
+                });
+                setGiftSettingsStatus(`Спроба ${attempt} збережена`, 'success');
+                await loadGiftSettings();
+            } catch (error) {
+                console.error('Error saving gift attempt:', error);
+                setGiftSettingsStatus('Помилка: ' + error.message, 'error');
+            }
+        }
+
+        function scrollToGiftLevel(level) {
+            const card = document.querySelector(`.gift-level-card[data-gift-level="${level}"]`);
+            if (!card) return;
+            card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            card.classList.add('pulse');
+            setTimeout(() => card.classList.remove('pulse'), 800);
+        }
+
+        // Проверяем доступ при загрузке страницы
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAdminAccess();
+            updateNotificationsBadge();
+            loadMaintenanceStatus();
+            setInterval(updateNotificationsBadge, 30000);
+        });
+    </script>
+    {% include 'support-widget.html' %}
+    {% include 'notifications-modal.html' %}
+    
+    <div id="gardenControlModal" class="notification-modal" style="display: none;">
+        <div class="modal-overlay" onclick="closeGardenControlModal()"></div>
+        <div class="modal-content garden-control-content">
+            <div class="modal-header">
+                <h2>🌳 Центр керування садом</h2>
+                <button class="modal-close" onclick="closeGardenControlModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="garden-tabs">
+                    <button class="tab-btn active" id="gardenTabButton-trees" onclick="switchGardenControlTab('trees')">🌳 Ціни дерев</button>
+                    <button class="tab-btn" id="gardenTabButton-fruits" onclick="switchGardenControlTab('fruits')">🍎 Біржа фруктів</button>
+                    <button class="tab-btn" id="gardenTabButton-users" onclick="switchGardenControlTab('users')">👤 Сади користувачів</button>
+                </div>
+
+                <div class="garden-tab" id="gardenTabTrees">
+                    <div class="garden-section-header">
+                        <div>
+                            <h3>Ціни та дохід дерев</h3>
+                            <p>Оновлюйте магазин без перезапуску бота.</p>
+                        </div>
+                        <button class="ghost-btn" onclick="refreshGardenTreeSettings(true)">🔄 Оновити</button>
+                    </div>
+                    <div id="gardenTreeSettingsStatus" class="form-status"></div>
+                    <div class="garden-card-grid" id="gardenTreeSettingsGrid">
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                    </div>
+                </div>
+
+                <div class="garden-tab" id="gardenTabFruits" style="display: none;">
+                    <div class="garden-section-header">
+                        <div>
+                            <h3>Біржа фруктів</h3>
+                            <p>Задавайте ціни продажу та промо множники.</p>
+                        </div>
+                        <button class="ghost-btn" onclick="refreshGardenFruitSettings(true)">🔄 Оновити</button>
+                    </div>
+                    <div id="gardenFruitSettingsStatus" class="form-status"></div>
+                    <div class="garden-card-grid" id="gardenFruitSettingsGrid">
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                    </div>
+                </div>
+
+                <div class="garden-tab" id="gardenTabUsers" style="display: none;">
+                    <div class="garden-section-header">
+                        <div>
+                            <h3>Сад конкретного користувача</h3>
+                            <p>Керуйте деревами, фруктами та рівнем вручну.</p>
+                        </div>
+                    </div>
+                    <div class="garden-user-search">
+                        <input type="number" id="gardenUserSearchInput" class="input-field" placeholder="ID користувача" min="1">
+                        <button class="primary-btn" onclick="searchGardenUser()">🔍 Завантажити</button>
+                    </div>
+                    <div id="gardenUserInfoBlock" class="garden-user-info empty-state">
+                        <p>Введіть ID користувача, щоб переглянути сад.</p>
+                    </div>
+                    <div class="garden-user-actions">
+                        <div class="garden-action-card">
+                            <h4>🏆 Рівень саду</h4>
+                            <label>Новий рівень</label>
+                            <input type="number" id="gardenSetLevelInput" class="input-field" min="0" placeholder="Наприклад, 3">
+                            <label>Причина (опціонально)</label>
+                            <input type="text" id="gardenSetLevelReason" class="input-field" placeholder="Коментар для журналу">
+                            <button class="primary-btn" onclick="submitGardenUserAction('set_level')">Зберегти рівень</button>
+                        </div>
+                        <div class="garden-action-card">
+                            <h4>➕ Додати дерева</h4>
+                            <label>Тип дерева</label>
+                            <select id="gardenAddTreeType" class="input-field"></select>
+                            <label>Кількість</label>
+                            <input type="number" id="gardenAddTreeCount" class="input-field" min="1" value="1">
+                            <button class="primary-btn" onclick="submitGardenUserAction('add_tree')">Додати</button>
+                        </div>
+                        <div class="garden-action-card">
+                            <h4>➖ Видалити дерева</h4>
+                            <label>Тип дерева</label>
+                            <select id="gardenRemoveTreeType" class="input-field"></select>
+                            <label>Кількість</label>
+                            <input type="number" id="gardenRemoveTreeCount" class="input-field" min="1" value="1">
+                            <button class="ghost-btn danger" onclick="submitGardenUserAction('remove_tree')">Видалити</button>
+                        </div>
+                        <div class="garden-action-card">
+                            <h4>🍎 Додати фрукти</h4>
+                            <label>Тип фруктів</label>
+                            <select id="gardenAddFruitType" class="input-field"></select>
+                            <label>Кількість (шт)</label>
+                            <input type="number" id="gardenAddFruitAmount" class="input-field" min="0.01" step="0.01">
+                            <button class="primary-btn" onclick="submitGardenUserAction('add_fruit')">Додати</button>
+                        </div>
+                        <div class="garden-action-card">
+                            <h4>🍏 Видалити фрукти</h4>
+                            <label>Тип фруктів</label>
+                            <select id="gardenRemoveFruitType" class="input-field"></select>
+                            <label>Кількість (шт)</label>
+                            <input type="number" id="gardenRemoveFruitAmount" class="input-field" min="0.01" step="0.01">
+                            <button class="ghost-btn danger" onclick="submitGardenUserAction('remove_fruit')">Видалити</button>
+                        </div>
+                    </div>
+                    <div id="gardenUserActionStatus" class="form-status"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для управления промокодами -->
+    <div id="promoCodesModal" class="notification-modal" style="display: none;">
+        <div class="modal-overlay" onclick="closePromoCodesModal()"></div>
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h2>🎟️ Управління промокодами</h2>
+                <button class="modal-close" onclick="closePromoCodesModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 24px;">
+                    <button class="primary-btn" onclick="showCreatePromoForm()" style="width: 100%; margin-bottom: 16px;">
+                        ➕ Створити новий промокод
+                    </button>
+                </div>
+                
+                <!-- Форма создания промокода -->
+                <div id="createPromoForm" style="display: none; background: rgba(79, 172, 254, 0.1); padding: 20px; border-radius: 16px; margin-bottom: 24px; border: 2px solid rgba(79, 172, 254, 0.3);">
+                    <h3 style="margin-bottom: 16px; color: #4facfe;">Створення промокоду</h3>
+                    <div style="display: grid; gap: 12px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600;">Код промокоду:</label>
+                            <input type="text" id="promoCode" class="input-field" placeholder="НАПРИКЛАД123" maxlength="50" style="text-transform: uppercase;">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600;">Тип винагороди:</label>
+                            <select id="promoRewardType" class="input-field" onchange="updatePromoFormFields()">
+                                <option value="balance">💰 Баланс (UAH)</option>
+                                <option value="fruit">🍎 Фрукт</option>
+                                <option value="booster">⚡ Бустер</option>
+                                <option value="tree">🌳 Дерево</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600;">Значення винагороди:</label>
+                            <input type="number" id="promoRewardValue" class="input-field" placeholder="100" min="0" step="0.01">
+                        </div>
+                        <div id="promoItemTypeContainer" style="display: none;">
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600;">Тип предмета:</label>
+                            <input type="text" id="promoItemType" class="input-field" placeholder="apple, speed_boost, oak">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600;">Максимум використань (0 = безліміт):</label>
+                            <input type="number" id="promoMaxUses" class="input-field" placeholder="0" min="0">
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 6px; font-weight: 600;">Дата закінчення (YYYY-MM-DD HH:MM:SS або порожньо):</label>
+                            <input type="text" id="promoExpiry" class="input-field" placeholder="2024-12-31 23:59:59">
+                        </div>
+                        <div style="display: flex; gap: 12px;">
+                            <button class="primary-btn" onclick="createPromoCode()" style="flex: 1;">Створити</button>
+                            <button class="secondary-btn" onclick="hideCreatePromoForm()" style="flex: 1;">Скасувати</button>
+                        </div>
+                        <div id="promoCreateStatus" style="margin-top: 12px;"></div>
+                    </div>
+                </div>
+                
+                <!-- Список промокодов -->
+                <div id="promoCodesList" style="max-height: 400px; overflow-y: auto;">
+                    <div class="loading-message" style="text-align: center; padding: 40px;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">⏳</div>
+                        <div>Завантаження...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно редактирования профиля пользователя -->
+    <div id="editUserProfileModal" class="notification-modal" style="display: none;">
+        <div class="modal-overlay" onclick="closeEditUserProfileModal()"></div>
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>✏️ Редактор профілю</h2>
+                <button class="modal-close" onclick="closeEditUserProfileModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div style="display: grid; gap: 16px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600;">ID користувача:</label>
+                        <input type="number" id="editUserId" class="input-field" placeholder="Введіть ID користувача" min="1">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600;">Ім'я користувача:</label>
+                        <input type="text" id="editUserName" class="input-field" placeholder="Нове ім'я">
+                    </div>
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600;">Username:</label>
+                        <input type="text" id="editUserUsername" class="input-field" placeholder="@username">
+                    </div>
+                    <div id="editUserProfileStatus" style="margin-top: 12px;"></div>
+                    <div style="display: flex; gap: 12px;">
+                        <button class="primary-btn" onclick="saveUserProfile()" style="flex: 1;">Зберегти</button>
+                        <button class="secondary-btn" onclick="closeEditUserProfileModal()" style="flex: 1;">Скасувати</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно управления реквизитами -->
+    <div id="requisitesModal" class="notification-modal" style="display: none;">
+        <div class="modal-overlay" onclick="closeRequisitesModal()"></div>
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2>💳 Управління реквізитами</h2>
+                <button class="modal-close" onclick="closeRequisitesModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div style="display: grid; gap: 16px;">
+                    <div>
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600;">Реквізити для виводу:</label>
+                        <textarea id="requisitesText" class="input-field" rows="8" placeholder="Введіть реквізити (номер картки, банк, інші дані)"></textarea>
+                    </div>
+                    <div id="requisitesStatus" style="margin-top: 12px;"></div>
+                    <div style="display: flex; gap: 12px;">
+                        <button class="primary-btn" onclick="saveRequisites()" style="flex: 1;">Зберегти</button>
+                        <button class="secondary-btn" onclick="closeRequisitesModal()" style="flex: 1;">Скасувати</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальне вікно бета-тестерів -->
+    <div id="balanceSettingsModal" class="notification-modal" style="display: none;">
+        <div class="modal-overlay" onclick="closeBalanceSettingsModal()"></div>
+        <div class="modal-content" style="max-width: 520px;">
+            <div class="modal-header">
+                <h2>⚙️ Балансові ліміти</h2>
+                <button class="modal-close" onclick="closeBalanceSettingsModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-subtitle">Оновлюйте мінімальні суми поповнення та виводу без перезапуску бота.</p>
+                <div class="balance-settings-grid">
+                    <div class="balance-settings-card">
+                        <h4>Мінімальний депозит</h4>
+                        <div class="input-with-icon">
+                            <span>₴</span>
+                            <input type="number" id="balanceMinDepositInput" class="input-field" min="0" step="0.01">
+                        </div>
+                        <button class="primary-btn" style="margin-top: 12px;" onclick="saveBalanceLimit('deposit')">Зберегти</button>
+                    </div>
+                    <div class="balance-settings-card">
+                        <h4>Мінімальний вивід</h4>
+                        <div class="input-with-icon">
+                            <span>₴</span>
+                            <input type="number" id="balanceMinWithdrawInput" class="input-field" min="0" step="0.01">
+                        </div>
+                        <button class="primary-btn" style="margin-top: 12px;" onclick="saveBalanceLimit('withdraw')">Зберегти</button>
+                    </div>
+                </div>
+                <div class="form-status" id="balanceSettingsStatus" style="margin-top: 12px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="balanceStatsModal" class="notification-modal" style="display: none;">
+        <div class="modal-overlay" onclick="closeBalanceStatsModal()"></div>
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h2>📊 Статистика балансів</h2>
+                <button class="modal-close" onclick="closeBalanceStatsModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div id="balanceStatsStatus" class="form-status" style="margin-bottom: 12px;"></div>
+                <div id="balanceStatsSummary" class="balance-stats-grid"></div>
+                <div class="modal-subtitle">Топ користувачів за балансом</div>
+                <div id="balanceStatsTopList" class="top-users-list"></div>
+                <div class="modal-subtitle" style="margin-top:16px;">Повний список (перші 100)</div>
+                <div id="balanceStatsUsersTable" class="balance-users-table">
+                    <p class="empty-message">Завантаження...</p>
+                </div>
+                <p class="modal-footnote">Показники беруться безпосередньо з файлу бази даних <code>tg.db</code> (таблиця <code>users</code>).</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="requestsModal" class="notification-modal" style="display: none;">
+        <div class="modal-overlay" onclick="closeRequestsModal()"></div>
+        <div class="modal-content" style="max-width: 960px;">
+            <div class="modal-header">
+                <h2 id="requestsModalTitle">Заявки</h2>
+                <button class="modal-close" onclick="closeRequestsModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="requests-tabs">
+                    <button class="tab-btn active" id="requestsTabDeposit" onclick="switchRequestsType('deposit')">Депозити</button>
+                    <button class="tab-btn" id="requestsTabWithdraw" onclick="switchRequestsType('withdraw')">Виводи</button>
+                </div>
+                <div class="requests-filters">
+                    <p class="modal-subtitle" id="requestsModalSubtitle">Перевіряйте заявки на поповнення та вивід у єдиному вікні.</p>
+                    <select id="requestsStatusSelect" onchange="changeRequestsStatus(this.value)">
+                        <option value="pending">Очікують</option>
+                        <option value="approved">Підтверджені</option>
+                        <option value="done">Виконані</option>
+                        <option value="rejected">Відхилені</option>
+                        <option value="all">Усі</option>
+                    </select>
+                </div>
+                <div id="requestsStatusMessage" class="form-status" style="margin-bottom: 12px;"></div>
+                <div id="requestsList" class="requests-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="requestActionModal" class="notification-modal" style="display: none;">
+        <div class="modal-overlay" onclick="closeRequestActionModal()"></div>
+        <div class="modal-content" style="max-width: 460px;">
+            <div class="modal-header">
+                <h2 id="requestActionTitle">Дія із заявкою</h2>
+                <button class="modal-close" onclick="closeRequestActionModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-subtitle" id="requestActionDescription">Підтвердіть дію для заявки.</p>
+                <div id="requestActionReasonContainer" style="display: none; margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Причина відхилення</label>
+                    <textarea id="requestActionReason" class="input-field" rows="3" placeholder="Опишіть причину (необов'язково)"></textarea>
+                </div>
+                <div id="requestActionPenaltyContainer" style="display: none; margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 6px; font-weight: 600;">Списати з балансу (опційно)</label>
+                    <input type="number" class="input-field" id="requestActionPenalty" placeholder="0.00" min="0" step="0.01">
+                    <p class="modal-footnote" style="margin-top: 6px;">Сума буде списана при відхиленні заявки на вивід.</p>
+                </div>
+                <div id="requestActionStatus" class="form-status" style="margin-bottom: 12px;"></div>
+                <div class="request-actions" style="margin-top: 0;">
+                    <button class="primary-btn" id="requestActionConfirmBtn" onclick="submitRequestAction()">Підтвердити</button>
+                    <button class="secondary-btn" onclick="closeRequestActionModal()">Скасувати</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальне вікно бета-тестерів -->
+    <div id="betaTestersModal" class="notification-modal" style="display: none;">
+        <div class="modal-overlay" onclick="closeBetaTestersModal()"></div>
+        <div class="modal-content" style="max-width: 900px;">
+            <div class="modal-header">
+                <h2>🧪 Бета тестери</h2>
+                <button class="modal-close" onclick="closeBetaTestersModal()">×</button>
+            </div>
+            <div class="modal-body beta-modal-body">
+                <div class="beta-stats-grid" id="betaStatsGrid">
+                    <div class="beta-stat-card">
+                        <div class="stat-label">Всього</div>
+                        <div class="stat-value" id="betaStatTotal">0</div>
+                        <div class="stat-hint">у базі</div>
+                    </div>
+                    <div class="beta-stat-card">
+                        <div class="stat-label">Активні 12 год</div>
+                        <div class="stat-value" id="betaStatActive12">0</div>
+                        <div class="stat-hint">за останні 12 год</div>
+                    </div>
+                    <div class="beta-stat-card">
+                        <div class="stat-label">Активні 24 год</div>
+                        <div class="stat-value" id="betaStatActive24">0</div>
+                        <div class="stat-hint">за 24 год</div>
+                    </div>
+                    <div class="beta-stat-card">
+                        <div class="stat-label">Неактивні 12 год</div>
+                        <div class="stat-value" id="betaStatInactive12">0</div>
+                        <div class="stat-hint">можна очистити</div>
+                    </div>
+                </div>
+                
+                <div class="beta-actions-grid">
+                    <div class="beta-action-card">
+                        <h3>Додати тестера</h3>
+                        <p>Вкажіть ID (може бути від'ємним, як у банері техробіт) або @username. Підійде будь-який користувач сайту.</p>
+                        <input type="text" id="betaAddInput" class="input-field" placeholder="123456789 або @username">
+                        <button class="primary-btn" onclick="addBetaTester()">Додати</button>
+                    </div>
+                    <div class="beta-action-card">
+                        <h3>Повідомлення</h3>
+                        <input type="text" id="betaNotifyTitle" class="input-field" placeholder="Заголовок" style="margin-bottom: 8px;">
+                        <textarea id="betaNotifyMessage" class="input-field" rows="3" placeholder="Текст повідомлення"></textarea>
+                        <button class="primary-btn" onclick="notifyBetaTesters()">Надіслати</button>
+                    </div>
+                    <div class="beta-action-card">
+                        <h3>Очистити неактивних</h3>
+                        <p>Видалити тестерів, які не були активні понад N годин.</p>
+                        <input type="number" id="betaCleanupHours" class="input-field" placeholder="24" min="1" max="168">
+                        <button class="secondary-btn" onclick="cleanupBetaTesters()">Очистити</button>
+                    </div>
+                </div>
+                
+                <div id="betaListStatus" class="form-status" style="display: none;"></div>
+                
+                <div id="betaTestersList" class="beta-list">
+                    <div class="loading-message" style="text-align: center; padding: 32px;">
+                        <div style="font-size: 42px; margin-bottom: 12px;">⏳</div>
+                        <div>Завантаження...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='js/support.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/snowflakes.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+</body>
+</html>
+

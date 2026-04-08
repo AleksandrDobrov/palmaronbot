@@ -1,0 +1,6 @@
+pyTelegramBotAPI
+Pillow
+Flask>=2.3.0
+Werkzeug>=2.3.0
+requests>=2.31.0
+python-dotenv

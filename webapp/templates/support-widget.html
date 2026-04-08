@@ -1,0 +1,134 @@
+<!-- Техподдержка - плавающая кнопка -->
+<div class="support-button" id="supportButton" onclick="openSupport()" aria-label="Відкрити підтримку">
+    <div class="support-icon">💬</div>
+    <div class="support-badge" id="supportBadge" style="display: none;">0</div>
+</div>
+
+<!-- Модальное окно техподдержки -->
+<div id="supportModal" class="notification-modal support-modal" style="display: none;">
+    <div class="modal-overlay" onclick="closeSupportModal()"></div>
+    <div class="modal-content support-modal-content">
+        <div class="support-hero">
+            <div class="support-hero-copy">
+                <h2>💬 Центр підтримки</h2>
+                <p>24/7 допомагаємо з нарахуваннями, кейсами, садом та технічними питаннями.</p>
+            </div>
+            <div class="support-hero-actions">
+                <button class="support-hero-btn ghost" type="button" id="supportRefreshBtn">
+                    ⟳ Оновити
+                </button>
+                <button class="support-hero-btn" type="button" id="supportNewTicketBtn">+ Нова заявка</button>
+            </div>
+        </div>
+        <div class="support-layout">
+            <aside class="support-sidebar">
+                <div class="support-sidebar-header">
+                    <span>Мої звернення</span>
+                    <div class="support-sidebar-tools">
+                        <button type="button" class="ghost-icon-btn" onclick="supportCenter?.refreshTickets()" title="Оновити">
+                            ⟳
+                        </button>
+                    </div>
+                </div>
+                <div class="support-ticket-list" id="supportTicketList">
+                    <div class="support-empty-list">Завантаження...</div>
+                </div>
+                <div class="support-sidebar-actions">
+                    <button class="support-new-btn" type="button" onclick="supportCenter?.startComposer()">Створити звернення</button>
+                </div>
+            </aside>
+            <section class="support-chat-panel">
+                <div class="support-chat-header">
+                    <div>
+                        <div class="support-chat-title" id="supportActiveTitle">Обери звернення</div>
+                        <div class="support-chat-meta" id="supportActiveMeta">Поки що немає діалогу</div>
+                    </div>
+                    <div class="support-chat-header-actions">
+                        <span class="support-status-pill" id="supportStatusPill" style="display: none;"></span>
+                        <button class="ghost-btn danger" type="button" id="supportCloseBtn" style="display:none;">Закрити звернення</button>
+                    </div>
+                </div>
+                <div class="support-chat-scroll" id="supportChat">
+                    <div class="support-empty-state" id="supportEmptyState">
+                        <div class="support-empty-emoji">🤝</div>
+                        <p>Створіть перше звернення або оберіть існуюче у списку.</p>
+                        <button class="primary-btn" type="button" onclick="supportCenter?.startComposer()">Написати в підтримку</button>
+                    </div>
+                </div>
+                <div class="support-compose" id="supportCompose">
+                    <div class="support-compose-headline">
+                        <div>
+                            <p class="support-compose-label">Категорія</p>
+                            <div class="support-subject-row" id="supportCategoryRow">
+                                <select id="supportCategorySelect" class="support-input support-select" data-default="general">
+                                    <option value="general">Загальне питання</option>
+                                    <option value="deposits">Поповнення / платежі</option>
+                                    <option value="withdrawals">Виведення коштів</option>
+                                    <option value="garden">Сад та дерева</option>
+                                    <option value="gift">Подарунки / рулетка</option>
+                                    <option value="technical">Технічна проблема</option>
+                                    <option value="verification">Верифікація / доступ</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="support-compose-meta" id="supportComposerHint">
+                            Напишіть деталі — оператор відповість найраніше.
+                        </div>
+                    </div>
+                    <div class="support-subject-row" id="supportSubjectRow">
+                        <input type="text" id="supportSubjectInput" class="support-input" placeholder="Тема звернення (необов'язково)">
+                    </div>
+                    <textarea id="supportMessageInput" class="support-textarea" rows="3" placeholder="Напишіть своє питання або опишіть проблему..."></textarea>
+                    <div class="support-compose-actions">
+                        <button class="ghost-btn" type="button" id="supportCancelBtn" onclick="supportCenter?.cancelComposer()" style="display: none;">Скасувати</button>
+                        <button class="primary-btn" type="button" id="supportSendBtn">Надіслати</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<!-- Глобальний банер технічних робіт -->
+<div id="maintenanceOverlay" class="maintenance-overlay" aria-hidden="true">
+    <div class="maintenance-card">
+        <div class="maintenance-icon">🛠</div>
+        <h2>Технічні роботи</h2>
+        <!-- Основне повідомлення, яке може змінюватися через JS -->
+        <p class="maintenance-message">
+            Ми тимчасово обмежили доступ до кабінету, щоб встановити оновлення. Зазвичай це займає лише кілька хвилин.
+        </p>
+
+        <!-- Блок запрошення у бета-тест -->
+        <div class="beta-invite" style="margin-top: 24px; padding: 18px; border-radius: 16px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08);">
+            <h3 style="margin-top: 0; margin-bottom: 8px; font-size: 18px;">Хочеш протестувати першим?</h3>
+            <p style="margin: 4px 0; color: rgba(255, 255, 255, 0.8);">
+                Бета-тестери отримують ранній доступ навіть під час оновлень. Напиши нам у Telegram та отримай персональний пропуск.
+            </p>
+            <a class="beta-cta" href="https://t.me/palmaron" target="_blank" rel="noopener noreferrer"
+               style="display: inline-flex; align-items: center; justify-content: center; margin-top: 12px; padding: 10px 20px; border-radius: 999px; background: linear-gradient(120deg, #4facfe, #00f2fe); color: #0b1130; font-weight: 600; text-decoration: none; box-shadow: 0 10px 25px rgba(0, 242, 254, 0.2);">
+                <span>Написати @palmaron</span>
+            </a>
+
+            {% set beta_user_id = session.get('user_id', '-') %}
+            {% if beta_user_id %}
+            <div class="beta-user-id" style="margin-top: 14px; padding: 12px 16px; border-radius: 12px; background: rgba(7, 16, 42, 0.6); border: 1px dashed rgba(255, 255, 255, 0.2);">
+                <div class="beta-user-id-label" style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: rgba(255, 255, 255, 0.6);">
+                    Твій ID для бета-доступу:
+                </div>
+                <div class="beta-user-id-value" style="font-size: 20px; font-weight: 700; margin-top: 4px;">
+                    {{ beta_user_id }}
+                </div>
+                <p class="beta-note" style="font-size: 13px; color: rgba(255, 255, 255, 0.6) !important;">
+                    Скопіюй та надішли цей ID у повідомленні — ми включимо тебе до списку тестерів.
+                </p>
+            </div>
+            {% endif %}
+        </div>
+
+        <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.6); margin-top: 16px;">
+            Дякуємо за розуміння 💙
+        </p>
+    </div>
+</div>
+

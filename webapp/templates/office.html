@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Інвестиційний офіс - INVESTING PALMARON BOT</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        .office-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .office-info {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .office-info-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: var(--accent-color);
+        }
+        .office-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .office-stat {
+            background: var(--bg-color);
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .office-stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+        .office-stat-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+        .office-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .office-section-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: var(--accent-color);
+        }
+        .office-message {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <a href="/" class="back-button">← Назад</a>
+            <h1>💼 Інвестиційний офіс</h1>
+        </header>
+
+        <main class="main-content">
+            <div class="office-container">
+                <div class="office-info">
+                    <div class="office-info-title">💼 ІНВЕСТИЦІЙНИЙ ОФІС</div>
+                    <div id="officeStats" class="office-stats">
+                        <div class="office-stat">
+                            <div class="office-stat-value" id="officeLevel">—</div>
+                            <div class="office-stat-label">Рівень офісу</div>
+                        </div>
+                        <div class="office-stat">
+                            <div class="office-stat-value" id="employeesCount">—</div>
+                            <div class="office-stat-label">Працівників</div>
+                        </div>
+                        <div class="office-stat">
+                            <div class="office-stat-value" id="totalIncome">0.00</div>
+                            <div class="office-stat-label">Загальний дохід</div>
+                        </div>
+                        <div class="office-stat">
+                            <div class="office-stat-value" id="dailyIncome">0.00</div>
+                            <div class="office-stat-label">Денний дохід</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="officeContent" class="office-section">
+                    <div class="office-message">
+                        💼 Інвестиційний офіс дозволяє вам інвестувати та отримувати пасивний дохід.<br><br>
+                        🌟 Функція в розробці. Скоро ви зможете:<br>
+                        • Наймати працівників<br>
+                        • Отримувати пасивний дохід<br>
+                        • Розвивати свій бізнес<br><br>
+                        Зачекайте трохи, і ця функція стане доступною!
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+    <script>
+        const telegramWebApp = window.Telegram.WebApp;
+        telegramWebApp.ready();
+        telegramWebApp.expand();
+
+        async function loadOfficeData() {
+            try {
+                const response = await fetch('/api/user/office');
+                const data = await response.json();
+                
+                if (response.ok && data.office) {
+                    // Обновляем статистику офиса
+                    document.getElementById('officeLevel').textContent = data.office.level || 1;
+                    document.getElementById('employeesCount').textContent = data.employees?.length || 0;
+                    document.getElementById('totalIncome').textContent = (data.office.total_income || 0).toFixed(2);
+                    document.getElementById('dailyIncome').textContent = (data.office.daily_income || 0).toFixed(2);
+                } else {
+                    // Показываем сообщение о разработке
+                    document.getElementById('officeContent').innerHTML = `
+                        <div class="office-message">
+                            💼 Інвестиційний офіс дозволяє вам інвестувати та отримувати пасивний дохід.<br><br>
+                            🌟 Функція в розробці. Скоро ви зможете:<br>
+                            • Наймати працівників<br>
+                            • Отримувати пасивний дохід<br>
+                            • Розвивати свій бізнес<br><br>
+                            Зачекайте трохи, і ця функція стане доступною!
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading office data:', error);
+            }
+        }
+
+        // Загружаем данные при загрузке страницы
+        loadOfficeData();
+    </script>
+    <script src="{{ url_for('static', filename='js/snowflakes.js') }}"></script>
+</body>
+</html>
+
+

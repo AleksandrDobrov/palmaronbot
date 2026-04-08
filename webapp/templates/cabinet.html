@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Кабінет - INVESTING PALMARON BOT</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Шапка -->
+        <header class="app-header">
+            <div class="header-decoration header-decoration-left"></div>
+            <div class="header-decoration header-decoration-right"></div>
+            <div class="header-content">
+                <a href="/" class="back-button">← Назад</a>
+                <h1 class="page-title">📑 Кабінет</h1>
+            </div>
+            <div class="notifications-icon" id="notificationsIcon" onclick="openNotificationsModal()">
+                <span class="notifications-bell">🔔</span>
+                <span class="notifications-badge" id="notificationsBadge" style="display: none;">0</span>
+            </div>
+        </header>
+
+        <!-- Контент кабинета -->
+    <main class="main-content">
+        <div class="main-content-inner">
+            <!-- Геройський блок -->
+            <section class="cabinet-section hero-overview">
+                <div class="hero-grid">
+                    <div class="glass-panel hero-card hero-profile-card">
+                        <div class="hero-profile-top">
+                            <div class="profile-avatar" id="profileAvatar">
+                                <div class="avatar-placeholder">👤</div>
+                            </div>
+                            <div class="hero-profile-text">
+                                <span class="profile-badge" id="profileBadge">Користувач</span>
+                                <h2 id="profileName">Завантаження...</h2>
+                                <p class="profile-id">ID: <span id="profileId">—</span></p>
+                                <p class="profile-username" id="profileUsername" style="display:none;"></p>
+                            </div>
+                        </div>
+                        <div class="hero-profile-stats">
+                            <div class="stat-item">
+                                <span class="stat-label">Баланс</span>
+                                <span class="stat-value" id="balanceAmount">0₴</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Виведено</span>
+                                <span class="stat-value" id="withdrawnAmount">0₴</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-label">Депозити</span>
+                                <span class="stat-value" id="depositsAmount">0₴</span>
+                            </div>
+                        </div>
+                        <div class="hero-profile-meta">
+                            <div class="meta-item">
+                                <span>Реєстрація</span>
+                                <strong id="profileJoined">—</strong>
+                            </div>
+                            <div class="meta-item">
+                                <span>Остання активність</span>
+                                <strong id="profileLastActive">—</strong>
+                            </div>
+                        </div>
+                        <div class="hero-profile-actions">
+                            <button class="primary-btn" onclick="scrollToForm('depositForm')">Поповнити баланс</button>
+                            <button class="ghost-btn" onclick="scrollToForm('withdrawForm')">Вивести кошти</button>
+                        </div>
+                    </div>
+                    <div class="glass-panel hero-card hero-banner" id="heroBanner">
+                        <div class="hero-badge" id="heroBadge">🚀 INVESTING TEAM</div>
+                        <h2 class="hero-title" id="heroTitle">INVESTING PALMARON BOT</h2>
+                        <p class="hero-subtitle" id="heroSubtitle">Ласкаво просимо до світу інвестицій!</p>
+                        <div class="hero-actions">
+                            <button class="primary-btn" id="heroPrimaryCta" onclick="openGardenPage()">🌳 Відкрити сад</button>
+                            <button class="ghost-btn" id="heroSecondaryCta" onclick="scrollToStats()">Переглянути статистику</button>
+                        </div>
+                    </div>
+                    <div class="hero-side-column">
+                        <div class="glass-panel channel-card">
+                            <p class="section-label">Офіційні оновлення</p>
+                            <h3 id="channelTitle">Офіційний канал</h3>
+                            <p id="channelDescription">Приєднуйтесь, щоб першими отримувати інсайти та бонуси.</p>
+                            <button class="primary-btn" id="channelButton">Відкрити канал</button>
+                        </div>
+                        <div class="glass-panel news-card">
+                            <div class="news-card-header">
+                                <div>
+                                    <p class="section-label" id="newsWidgetTitle">Новини проєкту</p>
+                                    <span class="section-hint" id="newsWidgetHint">Слідкуйте за ключовими оновленнями</span>
+                                </div>
+                                <div class="news-header-actions">
+                                    <span class="news-counter" id="newsCounter" style="display:none;"></span>
+                                    <button class="ghost-btn" onclick="openNewsModal()">Усі новини</button>
+                                </div>
+                            </div>
+                            <div class="news-list" id="newsWidgetList">
+                                <p class="empty-message">Новини завантажуються...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Действия -->
+            <section class="cabinet-section glass-panel">
+                <div class="action-buttons">
+                    <button class="action-btn btn-ref" onclick="handleRefProgram()">
+                        <span class="btn-icon">📈</span>
+                        <span class="btn-text">Реферальна програма</span>
+                    </button>
+                    <button class="action-btn btn-deposit" onclick="openFormInNewTab('deposit')">
+                        <span class="btn-icon">💵</span>
+                        <span class="btn-text">Депозит</span>
+                    </button>
+                    <button class="action-btn btn-withdraw" onclick="openFormInNewTab('withdraw')">
+                        <span class="btn-icon">💰</span>
+                        <span class="btn-text">Вивід коштів</span>
+                    </button>
+                    <button class="action-btn btn-pending" onclick="handlePendingWithdraws()">
+                        <span class="btn-icon">⏳</span>
+                        <span class="btn-text">Мої заявки на вивід</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Форми операцій -->
+            <section class="cabinet-section">
+                <div class="form-grid">
+                    <div class="form-card" id="depositForm">
+                        <div class="form-card-header">
+                            <h3>💎 Поповнення балансу</h3>
+                            <p>Миттєво створіть заявку на поповнення та отримайте інструкції від адміністратора.</p>
+                        </div>
+                        <p class="form-hint">Вкажіть суму, банк та коментар у зручному вікні.</p>
+                        <button class="primary-btn" onclick="openFormInNewTab('deposit')">Відкрити форму поповнення</button>
+                    </div>
+
+                    <div class="form-card" id="withdrawForm">
+                        <div class="form-card-header">
+                            <h3>💸 Заявка на вивід</h3>
+                            <p>Вкажіть суму, банк та реквізити, і ми миттєво створимо заявку на вивід коштів.</p>
+                        </div>
+                        <p class="form-hint">Форма відкриється у новому вікні. Підготуйте реквізити картки.</p>
+                        <button class="primary-btn" onclick="openFormInNewTab('withdraw')">Відкрити форму виводу</button>
+                    </div>
+
+                    <div class="form-card ref-card">
+                        <div class="form-card-header">
+                            <h3>🎯 Реферальна програма</h3>
+                            <p>Запрошуйте друзів та отримуйте бонуси за кожного активного інвестора.</p>
+                        </div>
+                        <div class="ref-info">
+                            <div class="ref-stat">
+                                <span>Бонус за друга</span>
+                                <strong id="refBonusValue">0₴</strong>
+                            </div>
+                            <div class="ref-stat">
+                                <span>Запрошено</span>
+                                <strong id="refTotalValue">0</strong>
+                            </div>
+                        </div>
+                        <div class="ref-link" id="refLinkValue">—</div>
+                        <div class="ref-actions">
+                            <button class="secondary-btn" onclick="copyRefLink()">Скопіювати</button>
+                            <button class="secondary-btn ghost" onclick="handleRefProgram()">Деталі програми</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Статистика -->
+            <section class="cabinet-section glass-panel">
+                <h3 class="section-title">📊 Статистика</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-label">Рефералів</div>
+                        <div class="stat-value" id="refCount">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🌳</div>
+                        <div class="stat-label">Рівень саду</div>
+                        <div class="stat-value" id="gardenLevel">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🌳</div>
+                        <div class="stat-label">Дерев</div>
+                        <div class="stat-value" id="treesCount">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🍎</div>
+                        <div class="stat-label">Фруктів</div>
+                        <div class="stat-value" id="fruitsValue">0₴</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Сад -->
+            <section class="cabinet-section glass-panel" id="gardenSection" style="display: none;">
+                <h3 class="section-title">🌳 Мій сад</h3>
+                <div class="garden-info">
+                    <div class="info-row">
+                        <span>Рівень:</span>
+                        <span id="gardenLevelName">—</span>
+                    </div>
+                    <div class="info-row">
+                        <span>Бонус врожаю:</span>
+                        <span id="gardenBonus">0%</span>
+                    </div>
+                    <div class="info-row">
+                        <span>Комісія:</span>
+                        <span id="gardenCommission">15%</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- History -->
+            <section class="cabinet-section glass-panel">
+                <h3 class="section-title">📜 Історія операцій</h3>
+                <div class="history-filters" id="historyFilters">
+                    <button type="button" class="history-filter active" data-history-filter="all" onclick="setHistoryFilter('all')">Усе</button>
+                    <button type="button" class="history-filter" data-history-filter="finance" onclick="setHistoryFilter('finance')">Фінанси</button>
+                    <button type="button" class="history-filter" data-history-filter="deposits" onclick="setHistoryFilter('deposits')">Поповнення</button>
+                    <button type="button" class="history-filter" data-history-filter="withdraws" onclick="setHistoryFilter('withdraws')">Виводи</button>
+                    <button type="button" class="history-filter" data-history-filter="garden" onclick="setHistoryFilter('garden')">Сад</button>
+                    <button type="button" class="history-filter" data-history-filter="adjustments" onclick="setHistoryFilter('adjustments')">Корекції</button>
+                </div>
+                <div class="history-list" id="historyList">
+                    <p class="empty-message">Завантаження...</p>
+                </div>
+                <button type="button" class="history-more-btn" id="historyMoreBtn" onclick="loadMoreHistory()" style="display: none;">
+                    Показати більше
+                </button>
+            </section>
+
+            <!-- Достижения -->
+            <section class="cabinet-section glass-panel" id="achievementsSection" style="display: none;">
+                <h3 class="section-title">🏆 Досягнення</h3>
+                <div class="achievements-list" id="achievementsList">
+                    <p class="empty-message">Немає досягнень</p>
+                </div>
+            </section>
+
+        <footer class="legal-footer" id="legalFooter">
+                © 2024 INVESTING PALMARON BOT • Усі права захищено
+            </footer>
+        </div>
+        </main>
+    </div>
+
+    <!-- Модальне вікно поповнення -->
+    <div id="depositModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>💎 Поповнення балансу</h2>
+                <button class="modal-close" onclick="closeDepositModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <label>Сума поповнення</label>
+                <input type="number" id="depositAmount" class="input-field" placeholder="Наприклад, 2500" min="1" step="0.01">
+                
+                <label>Банк</label>
+                <select id="depositBank" class="input-field">
+                    <option value="monobank">Monobank</option>
+                    <option value="privat">ПриватБанк</option>
+                    <option value="pumb">ПУМБ</option>
+                    <option value="oschad">Ощадбанк</option>
+                    <option value="other">Інший банк</option>
+                </select>
+                
+                <label>Коментар / Примітка</label>
+                <textarea id="depositComment" class="input-field" rows="2" placeholder="Наприклад, звідки буде оплата або будь-які уточнення"></textarea>
+                
+                <p class="form-hint" id="depositMinHint"></p>
+                <div class="form-status" id="depositStatus"></div>
+                <button class="primary-btn" onclick="submitDeposit()">Створити заявку</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальне вікно виводу -->
+    <div id="withdrawModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>💸 Заявка на вивід</h2>
+                <button class="modal-close" onclick="closeWithdrawModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <label>Сума до виводу</label>
+                <input type="number" id="withdrawAmount" class="input-field" placeholder="Наприклад, 1500" min="1" step="0.01">
+                
+                <label>Банк</label>
+                <select id="withdrawBank" class="input-field">
+                    <option value="monobank">Monobank</option>
+                    <option value="privat">ПриватБанк</option>
+                    <option value="pumb">ПУМБ</option>
+                    <option value="oschad">Ощадбанк</option>
+                    <option value="other">Інший банк</option>
+                </select>
+                
+                <label>Номер картки</label>
+                <input type="text" id="withdrawCard" class="input-field" placeholder="XXXX XXXX XXXX XXXX">
+                
+                <label>Додаткова інформація</label>
+                <textarea id="withdrawRequisites" class="input-field" rows="2" placeholder="ПІБ отримувача або інші реквізити"></textarea>
+                
+                <p class="form-hint" id="withdrawMinHint"></p>
+                <div class="form-status" id="withdrawStatus"></div>
+                <button class="primary-btn" onclick="submitWithdraw()">Подати заявку</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/telegram-webapp.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/branding-news.js') }}"></script>
+    <script>
+        let userRefLink = null;
+        let cabinetLimits = { min_deposit: null, min_withdraw: null };
+        let brandingSettings = {};
+        let brandingNewsManager = null;
+        const historyState = {
+            items: [],
+            filter: 'all',
+            limit: 20,
+            step: 20,
+            loading: false
+        };
+        const historyIcons = {
+            deposit: '💳',
+            withdraw: '🏦',
+            adjustment: '🧾',
+            harvest: '🍎',
+            watering: '💧',
+            buy_tree: '🌳',
+            level_up: '🚀',
+            sell_fruit: '💰',
+            gift_reward: '🎁',
+            admin_add_tree: '🛠',
+            admin_remove_tree: '🪓',
+            admin_add_fruit: '🍇',
+            admin_remove_fruit: '🥀'
+        };
+
+        function normalizeAdminFlag(value) {
+            return value === true || value === 1 || value === '1' || value === 'true';
+        }
+
+        function openFormInNewTab(formType) {
+            const targetUrl = formType === 'withdraw' ? '/forms/withdraw' : '/forms/deposit';
+            const opened = window.open(targetUrl, '_blank', 'noopener,noreferrer');
+            if (!opened) {
+                window.location.href = targetUrl;
+            }
+        }
+
+        // Загрузка данных кабинета
+        async function loadCabinetData() {
+            try {
+                const data = await api.getCabinetData();
+                brandingSettings = data.branding || {};
+                if (brandingNewsManager) {
+                    brandingNewsManager.setBrandingData(brandingSettings);
+                    const unreadCount = data.news && typeof data.news.unread_count !== 'undefined'
+                        ? data.news.unread_count
+                        : 0;
+                    brandingNewsManager.setUnreadCount(unreadCount);
+                }
+
+                // Зберігаємо ліміти
+                if (data.limits) {
+                    cabinetLimits = data.limits;
+                    const depHint = document.getElementById('depositMinHint');
+                    if (depHint && cabinetLimits.min_deposit !== null) {
+                        depHint.textContent = `Мінімальний депозит: ${formatCurrency(cabinetLimits.min_deposit)}₴`;
+                    }
+                    const wdHint = document.getElementById('withdrawMinHint');
+                    if (wdHint && cabinetLimits.min_withdraw !== null) {
+                        wdHint.textContent = `Мінімальна сума виводу: ${formatCurrency(cabinetLimits.min_withdraw)}₴`;
+                    }
+                }
+                
+                const adminFlag = normalizeAdminFlag(data.user && data.user.is_admin) || normalizeAdminFlag(data.is_admin);
+
+                // Заполняем профиль
+                document.getElementById('profileName').textContent = data.user.name || 'Користувач';
+                document.getElementById('profileId').textContent = data.user.id;
+                if (data.user.username) {
+                    const usernameEl = document.getElementById('profileUsername');
+                    usernameEl.textContent = '@' + data.user.username;
+                    usernameEl.style.display = 'block';
+                }
+                const badgeEl = document.getElementById('profileBadge');
+                if (badgeEl) {
+                    badgeEl.textContent = adminFlag ? 'Адмін' : 'Інвестор';
+                    if (adminFlag) {
+                        badgeEl.classList.add('admin');
+                    } else {
+                        badgeEl.classList.remove('admin');
+                    }
+                }
+                const joinedEl = document.getElementById('profileJoined');
+                if (joinedEl) {
+                    joinedEl.textContent = formatDateLabel(data.user.date_joined);
+                }
+                const lastActiveEl = document.getElementById('profileLastActive');
+                if (lastActiveEl) {
+                    lastActiveEl.textContent = formatRelativeTime(data.user.last_active);
+                }
+                
+                // Баланс
+                document.getElementById('balanceAmount').textContent = formatCurrency(data.user.balance) + '₴';
+                document.getElementById('withdrawnAmount').textContent = formatCurrency(data.user.withdrawn) + '₴';
+                document.getElementById('depositsAmount').textContent = formatCurrency(data.user.deposits_sum) + '₴';
+                
+                // Статистика
+                document.getElementById('refCount').textContent = data.user.ref_count || 0;
+                const refSummaryEl = document.getElementById('refTotalValue');
+                if (refSummaryEl) {
+                    refSummaryEl.textContent = data.user.ref_count || 0;
+                }
+                document.getElementById('gardenLevel').textContent = data.garden.level || 0;
+                document.getElementById('treesCount').textContent = data.garden.trees_total || 0;
+                document.getElementById('fruitsValue').textContent = formatCurrency(data.garden.fruits_total_value) + '₴';
+                
+                // Сад
+                if (data.garden.level > 0) {
+                    document.getElementById('gardenSection').style.display = 'block';
+                    document.getElementById('gardenLevelName').textContent = data.garden.level_name;
+                    document.getElementById('gardenBonus').textContent = '+' + data.garden.bonus_percent + '%';
+                    document.getElementById('gardenCommission').textContent = data.garden.commission_percent + '%';
+                }
+                
+                // Достижения
+                if (data.achievements && data.achievements.length > 0) {
+                    document.getElementById('achievementsSection').style.display = 'block';
+                    const list = document.getElementById('achievementsList');
+                    list.innerHTML = data.achievements.map(ach => 
+                        `<div class="achievement-item">🏆 <b>${ach.name}</b></div>`
+                    ).join('');
+                }
+
+                renderHistory(data.history || []);
+
+                await populateReferralCard();
+            } catch (error) {
+                console.error('Error loading cabinet data:', error);
+                telegramWebApp.showAlert('Помилка завантаження даних');
+            }
+        }
+        
+        function formatCurrency(amount) {
+            return parseFloat(amount || 0).toFixed(2);
+        }
+        
+        async function handleRefProgram() {
+            try {
+                const data = await api.getReferrals();
+                if (data.ref_link) {
+                    userRefLink = data.ref_link;
+                }
+                const refList = data.referrals.map(r => `👤 ${r.user_name} (ID: ${r.user_id})`).join('\n') || 'Немає рефералів';
+                const message = `🎯 <b>Реферальна програма</b>\n\n` +
+                    `Ваше реферальне посилання:\n<code>${data.ref_link}</code>\n\n` +
+                    `За кожного активного друга ви отримуєте бонус: <b>${data.ref_bonus}₴</b>\n` +
+                    `Вже запрошено: <b>${data.ref_count}</b>\n\n` +
+                    `<b>Ваші реферали:</b>\n${refList}`;
+                telegramWebApp.showAlert(message);
+            } catch (error) {
+                console.error('Error loading referrals:', error);
+                telegramWebApp.showAlert('Помилка завантаження реферальної програми');
+            }
+        }
+        
+        function openDepositModal() {
+            const modal = document.getElementById('depositModal');
+            if (modal) modal.style.display = 'flex';
+            setFormStatus('depositStatus', '', '');
+        }
+
+        function closeDepositModal() {
+            const modal = document.getElementById('depositModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        function openWithdrawModal() {
+            const modal = document.getElementById('withdrawModal');
+            if (modal) modal.style.display = 'flex';
+            setFormStatus('withdrawStatus', '', '');
+        }
+
+        function closeWithdrawModal() {
+            const modal = document.getElementById('withdrawModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        async function submitDeposit() {
+            const amountInput = document.getElementById('depositAmount');
+            const commentInput = document.getElementById('depositComment');
+            const bankSelect = document.getElementById('depositBank');
+            const amountValue = ((amountInput && amountInput.value) || '').replace(',', '.');
+            const amountNum = parseFloat(amountValue);
+            
+            if (isNaN(amountNum) || amountNum <= 0) {
+                setFormStatus('depositStatus', 'error', 'Вкажіть коректну суму для поповнення');
+                return;
+            }
+
+            // Перевірка мінімального депозиту
+            if (cabinetLimits.min_deposit !== null && amountNum < cabinetLimits.min_deposit) {
+                setFormStatus('depositStatus', 'error', `Мінімальний депозит: ${formatCurrency(cabinetLimits.min_deposit)}₴`);
+                return;
+            }
+            
+            setFormStatus('depositStatus', 'pending', 'Створюємо заявку...');
+            
+            try {
+                const comment = ((commentInput && commentInput.value) || '').trim();
+                const bank = (bankSelect && bankSelect.value) || '';
+                let bankLabel = '';
+                if (bankSelect && bankSelect.options && bankSelect.selectedIndex >= 0) {
+                    const selectedOption = bankSelect.options[bankSelect.selectedIndex];
+                    bankLabel = selectedOption ? selectedOption.text : '';
+                }
+                const fullComment = bankLabel ? `[${bankLabel}] ${comment}`.trim() : comment;
+                const result = await api.createDeposit(amountNum, fullComment);
+                
+                setFormStatus('depositStatus', 'success', `✅ Заявку №${result.deposit_id} створено. Очікуйте підтвердження адміністратора.`);
+                if (amountInput) amountInput.value = '';
+                if (commentInput) commentInput.value = '';
+                
+                loadCabinetData();
+                setTimeout(closeDepositModal, 800);
+            } catch (error) {
+                console.error('Error creating deposit:', error);
+                setFormStatus('depositStatus', 'error', error.message || 'Помилка створення депозиту');
+            }
+        }
+        
+        async function submitWithdraw() {
+            const amountInput = document.getElementById('withdrawAmount');
+            const requisitesInput = document.getElementById('withdrawRequisites');
+            const bankSelect = document.getElementById('withdrawBank');
+            const cardInput = document.getElementById('withdrawCard');
+            
+            const amountValue = ((amountInput && amountInput.value) || '').replace(',', '.');
+            const amountNum = parseFloat(amountValue);
+            if (isNaN(amountNum) || amountNum <= 0) {
+                setFormStatus('withdrawStatus', 'error', 'Вкажіть коректну суму для виводу');
+                return;
+            }
+
+            if (cabinetLimits.min_withdraw !== null && amountNum < cabinetLimits.min_withdraw) {
+                setFormStatus('withdrawStatus', 'error', `Мінімальна сума для виводу: ${formatCurrency(cabinetLimits.min_withdraw)}₴`);
+                return;
+            }
+            
+            const balanceEl = document.getElementById('balanceAmount');
+            const balance = balanceEl ? parseFloat(balanceEl.textContent.replace(/[^\d.,-]/g, '').replace(',', '.')) : null;
+            if (balance !== null && amountNum > balance) {
+                setFormStatus('withdrawStatus', 'error', 'Недостатньо коштів на балансі');
+                return;
+            }
+            
+            const bank = (bankSelect && bankSelect.value) || '';
+            let bankLabel = '';
+            if (bankSelect && bankSelect.options && bankSelect.selectedIndex >= 0) {
+                const selectedOption = bankSelect.options[bankSelect.selectedIndex];
+                bankLabel = selectedOption ? selectedOption.text : '';
+            }
+            const card = ((cardInput && cardInput.value) || '').trim();
+            const extra = ((requisitesInput && requisitesInput.value) || '').trim();
+
+            if (!card) {
+                setFormStatus('withdrawStatus', 'error', 'Вкажіть номер картки');
+                return;
+            }
+
+            const requisitesParts = [];
+            if (bankLabel) requisitesParts.push(`Банк: ${bankLabel}`);
+            if (card) requisitesParts.push(`Картка: ${card}`);
+            if (extra) requisitesParts.push(extra);
+            const requisites = requisitesParts.join('\\n');
+            
+            setFormStatus('withdrawStatus', 'pending', 'Створюємо заявку на вивід...');
+            
+            try {
+                const result = await api.createWithdraw(amountNum, requisites);
+                setFormStatus('withdrawStatus', 'success', `✅ Заявку №${result.withdrawal_id} створено. Ми повідомимо про статус у повідомленнях.`);
+                if (amountInput) amountInput.value = '';
+                if (requisitesInput) requisitesInput.value = '';
+                loadCabinetData();
+                setTimeout(closeWithdrawModal, 800);
+            } catch (error) {
+                console.error('Error creating withdrawal:', error);
+                setFormStatus('withdrawStatus', 'error', error.message || 'Помилка створення виводу');
+            }
+        }
+        
+        async function handlePendingWithdraws() {
+            try {
+                const data = await api.getCabinetData();
+                const pending = data.pending_withdraws || 0;
+                telegramWebApp.showAlert(`⏳ Очікує на вивід: <b>${pending}</b> заявок`);
+            } catch (error) {
+                console.error('Error loading pending withdrawals:', error);
+                telegramWebApp.showAlert('Помилка завантаження заявок');
+            }
+        }
+        
+        async function populateReferralCard() {
+            try {
+                const data = await api.getReferrals();
+                userRefLink = data.ref_link;
+                const linkEl = document.getElementById('refLinkValue');
+                if (linkEl && data.ref_link) {
+                    linkEl.textContent = data.ref_link;
+                }
+                const bonusEl = document.getElementById('refBonusValue');
+                if (bonusEl) {
+                    bonusEl.textContent = formatCurrency(data.ref_bonus || 0) + '₴';
+                }
+                const totalEl = document.getElementById('refTotalValue');
+                if (totalEl && data.ref_count !== undefined) {
+                    totalEl.textContent = data.ref_count;
+                }
+            } catch (error) {
+                console.error('Error loading referral data:', error);
+            }
+        }
+        
+        function renderHistory(entries = null) {
+            const container = document.getElementById('historyList');
+            if (!container) return;
+            if (entries) {
+                historyState.items = Array.isArray(entries) ? entries : [];
+                historyState.limit = Math.min(historyState.items.length, historyState.step);
+                if (historyState.limit === 0) {
+                    historyState.limit = historyState.step;
+                }
+            }
+            const filtered = filterHistoryEntries(historyState.items, historyState.filter);
+            if (!filtered.length) {
+                container.innerHTML = '<p class="empty-message">Подій ще не було</p>';
+                toggleHistoryMoreButton(false);
+                return;
+            }
+            const slice = filtered.slice(0, historyState.limit);
+            container.innerHTML = slice.map(renderHistoryItem).join('');
+            toggleHistoryMoreButton(filtered.length > historyState.limit);
+        }
+
+        function toggleHistoryMoreButton(shouldShow) {
+            const moreBtn = document.getElementById('historyMoreBtn');
+            if (!moreBtn) return;
+            if (shouldShow) {
+                moreBtn.style.display = 'block';
+                moreBtn.disabled = historyState.loading;
+                moreBtn.textContent = historyState.loading ? 'Завантаження...' : 'Показати більше';
+            } else {
+                moreBtn.style.display = 'none';
+            }
+        }
+
+        function filterHistoryEntries(entries, filter) {
+            if (!filter || filter === 'all') return entries || [];
+            const gardenTypes = new Set(['harvest', 'watering', 'buy_tree', 'level_up', 'sell_fruit']);
+            return (entries || []).filter(entry => {
+                const kind = entry.kind || 'garden';
+                const metaType = entry.meta && entry.meta.type ? entry.meta.type : null;
+                const subtype = entry.subtype || metaType || kind;
+                const category = entry.category || kind;
+                switch (filter) {
+                    case 'finance':
+                        return kind === 'deposit' || kind === 'withdraw' || kind === 'adjustment';
+                    case 'deposits':
+                        return kind === 'deposit';
+                    case 'withdraws':
+                        return kind === 'withdraw';
+                    case 'garden':
+                        return kind === 'garden' || category === 'garden' || gardenTypes.has(subtype);
+                    case 'adjustments':
+                        return kind === 'adjustment';
+                    default:
+                        return true;
+                }
+            });
+        }
+
+        function setHistoryFilter(filter) {
+            historyState.filter = filter;
+            document.querySelectorAll('[data-history-filter]').forEach(btn => {
+                const isActive = btn.dataset.historyFilter === filter;
+                btn.classList.toggle('active', isActive);
+            });
+            renderHistory();
+        }
+
+        async function loadMoreHistory() {
+            if (historyState.loading) return;
+            historyState.loading = true;
+            const prevLimit = historyState.limit;
+            historyState.limit += historyState.step;
+            try {
+                const response = await api.getUserHistory(historyState.limit);
+                if (response && response.history) {
+                    historyState.items = response.history;
+                }
+                renderHistory();
+            } catch (error) {
+                console.error('Error loading more history:', error);
+                showToast(error.message || 'Не вдалося завантажити історію', 'error');
+                historyState.limit = prevLimit;
+            } finally {
+                historyState.loading = false;
+                toggleHistoryMoreButton(filterHistoryEntries(historyState.items, historyState.filter).length > historyState.limit);
+            }
+        }
+
+        function renderHistoryItem(entry) {
+            const kind = entry.kind || 'garden';
+            const meta = entry.meta || {};
+            const subtype = entry.subtype || meta.type || kind;
+            const icon = entry.icon || historyIcons[subtype] || historyIcons[kind] || '📘';
+            const direction = entry.direction || inferHistoryDirection(entry);
+            const amountValue = Number(entry.amount || 0);
+            const currencySuffix = formatCurrencyLabel(entry.currency || '', subtype);
+            const sign = direction === 'out' ? '-' : direction === 'in' ? '+' : '';
+            const amountClass = direction === 'out' ? 'negative' : direction === 'in' ? 'positive' : 'neutral';
+            const formattedAmount = `${sign}${formatCurrency(Math.abs(amountValue))}${currencySuffix}`;
+            const statusLabel = entry.status_label || formatStatusText(entry.status);
+            const statusClass = (entry.status || '').toLowerCase() || 'completed';
+            const description = (entry.description || meta.comment || statusLabel || '').trim();
+            const timeLabel = entry.timestamp ? formatHistoryTimestamp(entry.timestamp) : '';
+            const title = entry.title || getHistoryTitle(kind, subtype);
+            const categoryLabel = getHistoryCategoryLabel(entry.category || kind);
+            const tagMarkup = statusLabel ? `<span class="history-tag ${statusClass}">${statusLabel}</span>` : '';
+            return `
+                <article class="history-item">
+                    <div class="history-icon">${icon}</div>
+                    <div class="history-body">
+                        <div class="history-row">
+                            <div>
+                                <div class="history-title">${title}</div>
+                                <div class="history-sub">${description}</div>
+                            </div>
+                            <div class="history-amount ${amountClass}">
+                                <span class="amount-value">${formattedAmount}</span>
+                                ${tagMarkup}
+                            </div>
+                        </div>
+                        <div class="history-meta">
+                            <span>${timeLabel}</span>
+                            <span class="history-meta-pill">${categoryLabel}</span>
+                        </div>
+                    </div>
+                </article>
+            `;
+        }
+
+        function getHistoryTitle(kind, subtype) {
+            if (kind === 'deposit') return 'Поповнення';
+            if (kind === 'withdraw') return 'Вивід коштів';
+            if (kind === 'adjustment' && subtype && subtype.includes('penalty')) return 'Штраф';
+            if (kind === 'adjustment') return 'Корекція балансу';
+            if (subtype === 'harvest') return 'Збір врожаю';
+            if (subtype === 'sell_fruit') return 'Продаж фруктів';
+            if (subtype === 'watering') return 'Полив дерев';
+            if (subtype === 'buy_tree') return 'Покупка дерева';
+            if (subtype === 'level_up') return 'Покращення саду';
+            return 'Операція';
+        }
+
+        function formatStatusText(status) {
+            if (!status) return '';
+            switch (status.toLowerCase()) {
+                case 'pending':
+                    return 'Очікує';
+                case 'completed':
+                    return 'Завершено';
+                case 'rejected':
+                    return 'Відхилено';
+                default:
+                    return status.toUpperCase();
+            }
+        }
+
+        function formatCurrencyLabel(currency = '', subtype = '') {
+            if (!currency) {
+                if (subtype === 'harvest') return ' фруктів';
+                return '';
+            }
+            if (currency === 'UAH') return '₴';
+            if (currency === 'FRUIT') return ' фруктів';
+            if (currency === 'TREES') return ' дерев';
+            if (currency === 'LEVEL') return ' рів.';
+            return ` ${currency}`;
+        }
+
+        function getHistoryCategoryLabel(category) {
+            const labels = {
+                deposit: 'Поповнення',
+                withdraw: 'Вивід',
+                finance: 'Фінанси',
+                garden: 'Сад',
+                adjustment: 'Корекція',
+                adjustments: 'Корекція'
+            };
+            return labels[category] || 'Операція';
+        }
+
+        function inferHistoryDirection(entry) {
+            if (entry.direction) return entry.direction;
+            const kind = entry.kind || 'garden';
+            const metaType = entry.meta && entry.meta.type ? entry.meta.type : null;
+            const subtype = entry.subtype || metaType || kind;
+            if (kind === 'deposit') return 'in';
+            if (kind === 'withdraw') return 'out';
+            if (kind === 'adjustment') {
+                const rawDelta = entry.meta && typeof entry.meta.raw_delta !== 'undefined'
+                    ? entry.meta.raw_delta
+                    : undefined;
+                const delta = Number(rawDelta);
+                if (!isNaN(delta)) return delta >= 0 ? 'in' : 'out';
+            }
+            if (['buy_tree', 'level_up'].includes(subtype)) return 'out';
+            if (['harvest', 'sell_fruit', 'admin_add_tree', 'admin_add_fruit'].includes(subtype)) return 'in';
+            if (['admin_remove_tree', 'admin_remove_fruit'].includes(subtype)) return 'out';
+            return 'neutral';
+        }
+
+        function formatHistoryTimestamp(ts) {
+            const value = parseInt(ts, 10);
+            if (isNaN(value) || value <= 0) return '';
+            const date = new Date(value * 1000);
+            return date.toLocaleString('uk-UA', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+        }
+        
+        function copyRefLink() {
+            const linkEl = document.getElementById('refLinkValue');
+            const linkFallback = linkEl && linkEl.textContent ? linkEl.textContent.trim() : '';
+            const link = userRefLink || linkFallback;
+            if (!link || link === '—') {
+                telegramWebApp.showAlert('Реферальне посилання ще не згенеровано');
+                return;
+            }
+            
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(link)
+                    .then(() => telegramWebApp.showAlert('Посилання скопійоване ✅'))
+                    .catch(() => telegramWebApp.showAlert('Не вдалося скопіювати. Спробуйте вручну.'));
+            } else {
+                telegramWebApp.showAlert(link);
+            }
+        }
+        
+        function scrollToForm(formId) {
+            const form = document.getElementById(formId);
+            if (!form) return;
+            form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            form.classList.add('form-card-focus');
+            setTimeout(() => form.classList.remove('form-card-focus'), 1200);
+        }
+        
+        function setFormStatus(elementId, type, message) {
+            const statusEl = document.getElementById(elementId);
+            if (!statusEl) return;
+            statusEl.textContent = message || '';
+            statusEl.style.display = message ? 'block' : 'none';
+            statusEl.className = `form-status ${type || ''}`;
+        }
+
+        function formatDateLabel(value) {
+            if (!value) return '—';
+            const numeric = parseInt(value, 10);
+            if (!isNaN(numeric) && numeric > 1000000000) {
+                return new Date(numeric * 1000).toLocaleDateString('uk-UA');
+            }
+            const parsed = Date.parse(value);
+            if (!isNaN(parsed)) {
+                return new Date(parsed).toLocaleDateString('uk-UA');
+            }
+            return value;
+        }
+
+        function formatRelativeTime(value) {
+            if (!value) return '—';
+            let timestamp = parseInt(value, 10);
+            if (!isNaN(timestamp) && timestamp > 1000000000) {
+                timestamp = timestamp * 1000;
+            } else {
+                const parsed = Date.parse(value);
+                if (!isNaN(parsed)) {
+                    timestamp = parsed;
+                } else {
+                    return value;
+                }
+            }
+            const diff = Math.floor((Date.now() - timestamp) / 1000);
+            if (diff < 60) return 'щойно';
+            if (diff < 3600) return `${Math.floor(diff / 60)} хв тому`;
+            if (diff < 86400) return `${Math.floor(diff / 3600)} год тому`;
+            return new Date(timestamp).toLocaleDateString('uk-UA');
+        }
+
+        function openGardenPage() {
+            window.location.href = '/garden';
+        }
+
+        function scrollToStats() {
+            const stats = document.querySelector('.stats-grid');
+            if (!stats) return;
+            stats.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        
+        // Обновление счетчика уведомлений
+        async function updateNotificationsBadge() {
+            try {
+                const data = await api.getUnreadNotificationsCount();
+                const badge = document.getElementById('notificationsBadge');
+                if (badge) {
+                    const count = data.unread_count || 0;
+                    if (count > 0) {
+                        badge.textContent = count > 99 ? '99+' : count;
+                        badge.style.display = 'block';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+            } catch (error) {
+                console.error('Error updating notifications badge:', error);
+            }
+        }
+        
+        // Загружаем данные при загрузке страницы
+        document.addEventListener('DOMContentLoaded', () => {
+            brandingNewsManager = initBrandingNews({
+                limit: 4,
+                modalId: 'newsModal',
+                modalBody: 'newsModalBody'
+            });
+            loadCabinetData();
+            updateNotificationsBadge();
+            setInterval(updateNotificationsBadge, 30000);
+        });
+    </script>
+    <div id="newsModal" class="notification-modal" style="display: none;">
+        <div class="modal-overlay" onclick="closeNewsModal()"></div>
+        <div class="modal-content news-modal-content">
+            <div class="modal-header">
+                <h2>📰 Новини платформи</h2>
+                <button class="modal-close" onclick="closeNewsModal()">×</button>
+            </div>
+            <div class="modal-body news-modal-body" id="newsModalBody">
+                <p class="empty-message">Новини завантажуються...</p>
+            </div>
+        </div>
+    </div>
+    {% include 'support-widget.html' %}
+    {% include 'notifications-modal.html' %}
+    <script src="{{ url_for('static', filename='js/support.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/snowflakes.js') }}"></script>
+</body>
+</html>
+

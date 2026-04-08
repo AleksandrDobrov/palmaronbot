@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Заявка на вивід • Palamron</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body class="form-page withdraw-form">
+    <div class="form-shell glass-panel">
+        <header>
+            <div>
+                <h1>💸 Заявка на вивід</h1>
+                <p class="form-description">Вкажіть суму, виберіть банк та додайте реквізити для виплати.</p>
+            </div>
+            <button class="ghost-btn" onclick="tryCloseWindow()">×</button>
+        </header>
+
+        <div class="form-user-info">
+            <span>Користувач:</span>
+            <strong id="withdrawUserName">Завантаження...</strong>
+            <span id="withdrawUserId">ID —</span>
+            <span>Баланс: <strong id="withdrawUserBalance">—</strong></span>
+        </div>
+
+        <form onsubmit="submitWithdrawForm(event)">
+            <label for="withdrawAmountInput">Сума до виводу</label>
+            <input type="number" id="withdrawAmountInput" class="input-field" placeholder="Наприклад, 1500" min="1" step="0.01">
+
+            <label for="withdrawBankSelect">Банк</label>
+            <select id="withdrawBankSelect" class="input-field">
+                <option value="monobank">Monobank</option>
+                <option value="privat">ПриватБанк</option>
+                <option value="pumb">ПУМБ</option>
+                <option value="oschad">Ощадбанк</option>
+                <option value="other">Інший банк</option>
+            </select>
+
+            <label for="withdrawCardInput">Номер картки</label>
+            <input type="text" id="withdrawCardInput" class="input-field" placeholder="XXXX XXXX XXXX XXXX">
+
+            <label for="withdrawExtraInput">Додаткова інформація</label>
+            <textarea id="withdrawExtraInput" class="input-field" rows="3" placeholder="ПІБ отримувача або інші реквізити"></textarea>
+
+            <p class="form-hint" id="withdrawFormHint">Мінімальна сума виводу уточнюється...</p>
+            <div class="form-status" id="withdrawFormStatus"></div>
+
+            <button type="submit" class="primary-btn">Подати заявку</button>
+        </form>
+
+        <div class="form-actions">
+            <a class="ghost-btn" href="/cabinet">← Повернутися до кабінету</a>
+            <button class="secondary-btn" onclick="openSupport()">Звʼязатися з підтримкою</button>
+        </div>
+
+        <p class="support-link">Якщо реквізити змінювалися нещодавно — обовʼязково попередьте адміністратора.</p>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/telegram-webapp.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+    <script>
+        const telegramApp = window.telegramWebApp || window.Telegram?.WebApp || window.Telegram?.webApp || null;
+        let apiClient = null;
+        let withdrawLimits = { min_withdraw: null };
+        let cachedBalance = 0;
+
+        function tryCloseWindow() {
+            if (telegramApp && typeof telegramApp.close === 'function') {
+                telegramApp.close();
+            } else if (window.close) {
+                window.close();
+            }
+        }
+
+        function formatCurrency(value) {
+            const number = parseFloat(value || 0);
+            if (isNaN(number)) return '0.00';
+            return number.toFixed(2);
+        }
+
+        function setWithdrawStatus(type, message) {
+            const statusEl = document.getElementById('withdrawFormStatus');
+            if (!statusEl) return;
+            statusEl.textContent = message || '';
+            statusEl.className = 'form-status';
+            if (type && message) {
+                statusEl.classList.add(type);
+            }
+            statusEl.style.display = message ? 'block' : 'none';
+        }
+
+        async function initWithdrawForm() {
+            try {
+                apiClient = new API();
+            } catch (error) {
+                console.error('API init error:', error);
+                setWithdrawStatus('error', 'Не вдалося ініціалізувати клієнт. Оновіть сторінку.');
+                return;
+            }
+
+            try {
+                const data = await apiClient.getCabinetData();
+                if (data && data.user) {
+                    const userName = document.getElementById('withdrawUserName');
+                    const userId = document.getElementById('withdrawUserId');
+                    const userBalance = document.getElementById('withdrawUserBalance');
+                    if (userName) {
+                        userName.textContent = data.user.name || 'Користувач';
+                    }
+                    if (userId) {
+                        userId.textContent = `ID ${data.user.id || '—'}`;
+                    }
+                    if (userBalance) {
+                        cachedBalance = data.user.balance || 0;
+                        userBalance.textContent = `${formatCurrency(cachedBalance)}₴`;
+                    }
+                }
+                withdrawLimits = data.limits || withdrawLimits;
+                const hint = document.getElementById('withdrawFormHint');
+                if (hint && withdrawLimits.min_withdraw !== null) {
+                    hint.textContent = `Мінімальна сума виводу: ${formatCurrency(withdrawLimits.min_withdraw)}₴`;
+                } else if (hint) {
+                    hint.textContent = 'Мінімальна сума виводу визначається адміністратором.';
+                }
+            } catch (error) {
+                console.error('Cabinet data error:', error);
+                setWithdrawStatus('error', error.message || 'Не вдалося завантажити дані користувача');
+            }
+        }
+
+        async function submitWithdrawForm(event) {
+            if (event) {
+                event.preventDefault();
+            }
+            if (!apiClient) {
+                setWithdrawStatus('error', 'API клієнт недоступний. Оновіть сторінку.');
+                return;
+            }
+
+            const amountInput = document.getElementById('withdrawAmountInput');
+            const bankSelect = document.getElementById('withdrawBankSelect');
+            const cardInput = document.getElementById('withdrawCardInput');
+            const extraInput = document.getElementById('withdrawExtraInput');
+
+            const rawValue = (amountInput && amountInput.value ? amountInput.value : '').replace(',', '.');
+            const amount = parseFloat(rawValue);
+            if (isNaN(amount) || amount <= 0) {
+                setWithdrawStatus('error', 'Вкажіть коректну суму для виводу');
+                return;
+            }
+
+            if (withdrawLimits.min_withdraw !== null && amount < withdrawLimits.min_withdraw) {
+                setWithdrawStatus('error', `Мінімальна сума для виводу: ${formatCurrency(withdrawLimits.min_withdraw)}₴`);
+                return;
+            }
+
+            if (cachedBalance && amount > cachedBalance + 0.01) {
+                setWithdrawStatus('error', 'Недостатньо коштів на балансі');
+                return;
+            }
+
+            if (!cardInput || !cardInput.value || !cardInput.value.trim()) {
+                setWithdrawStatus('error', 'Вкажіть номер картки');
+                return;
+            }
+
+            let bankLabel = '';
+            if (bankSelect && bankSelect.options && bankSelect.selectedIndex >= 0) {
+                const option = bankSelect.options[bankSelect.selectedIndex];
+                bankLabel = option ? option.text : '';
+            }
+            const extra = extraInput && extraInput.value ? extraInput.value.trim() : '';
+            const requisites = [
+                bankLabel ? `Банк: ${bankLabel}` : '',
+                cardInput.value.trim() ? `Картка: ${cardInput.value.trim()}` : '',
+                extra
+            ].filter(Boolean).join('\n');
+
+            setWithdrawStatus('pending', 'Створюємо заявку на вивід...');
+            try {
+                const result = await apiClient.createWithdraw(amount, requisites);
+                const withdrawId = result && result.withdrawal_id ? result.withdrawal_id : '';
+                setWithdrawStatus('success', withdrawId ? `✅ Заявку №${withdrawId} створено.` : '✅ Заявку створено.');
+                if (amountInput) amountInput.value = '';
+                if (cardInput) cardInput.value = '';
+                if (extraInput) extraInput.value = '';
+            } catch (error) {
+                console.error('Create withdraw error:', error);
+                setWithdrawStatus('error', error.message || 'Не вдалося створити заявку');
+            }
+        }
+
+        function openSupport() {
+            if (telegramApp && typeof telegramApp.openLink === 'function') {
+                telegramApp.openLink('https://t.me/palamron_support');
+            } else {
+                window.open('https://t.me/palamron_support', '_blank');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initWithdrawForm);
+        window.submitWithdrawForm = submitWithdrawForm;
+    </script>
+</body>
+</html>
+
+

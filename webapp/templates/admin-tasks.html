@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Управління завданнями - Адмінка</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <a href="/admin" class="back-button">← Назад</a>
+            <h1 class="page-title">📋 Управління завданнями</h1>
+        </header>
+
+        <main class="main-content">
+            <div id="accessDenied" style="display: none;">
+                <div class="error-message">
+                    <h2>❌ Доступ заборонено</h2>
+                    <p>У вас немає прав адміністратора</p>
+                </div>
+            </div>
+
+            <div id="adminTasksPanel" style="display: none;">
+                <!-- Кнопки управления -->
+                <section class="admin-section">
+                    <div class="admin-grid">
+                        <button class="admin-btn" onclick="showCreateTaskForm()">
+                            <span class="btn-icon">➕</span>
+                            <span class="btn-text">Створити завдання</span>
+                        </button>
+                        <button class="admin-btn" onclick="loadTasks('all')">
+                            <span class="btn-icon">📋</span>
+                            <span class="btn-text">Всі завдання</span>
+                        </button>
+                        <button class="admin-btn" onclick="loadTasks('active')">
+                            <span class="btn-icon">📊</span>
+                            <span class="btn-text">Активні</span>
+                        </button>
+                        <button class="admin-btn" onclick="loadTasks('paused')">
+                            <span class="btn-icon">⏸</span>
+                            <span class="btn-text">На паузі</span>
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Форма создания задания -->
+                <section class="admin-section" id="createTaskForm" style="display: none;">
+                    <h2 class="section-title">➕ Створення завдання</h2>
+                    <div class="form-group">
+                        <label>Тип завдання:</label>
+                        <select id="taskType" class="form-input">
+                            <option value="subscribe_channel">📢 Підписка на канал</option>
+                            <option value="subscribe_chat">💬 Підписка на чат</option>
+                            <option value="invite_users">👥 Запросити друзів</option>
+                            <option value="deposit">💵 Поповнити баланс</option>
+                            <option value="buy_tree">🌳 Купити дерево</option>
+                            <option value="harvest">🍎 Зібрати урожай</option>
+                            <option value="sell_fruits">💰 Продати фрукты</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Назва завдання:</label>
+                        <input type="text" id="taskTitle" class="form-input" placeholder="Введіть назву">
+                    </div>
+                    <div class="form-group">
+                        <label>Опис (необов'язково):</label>
+                        <textarea id="taskDescription" class="form-input" rows="3" placeholder="Введіть опис"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Нагорода (₴):</label>
+                        <input type="number" id="taskReward" class="form-input" placeholder="0.00" step="0.01" min="0">
+                    </div>
+                    <div class="form-group" id="taskDataGroup" style="display: none;">
+                        <label id="taskDataLabel">Дані завдання:</label>
+                        <input type="text" id="taskData" class="form-input" placeholder="Введіть дані">
+                    </div>
+                    <div class="form-group">
+                        <label>Макс. виконань (необов'язково):</label>
+                        <input type="number" id="taskMaxCompletions" class="form-input" placeholder="Без обмежень" min="1">
+                    </div>
+                    <div class="form-actions">
+                        <button class="action-btn" onclick="createTask()">Створити</button>
+                        <button class="action-btn" onclick="hideCreateTaskForm()" style="background: var(--bg-card);">Скасувати</button>
+                    </div>
+                </section>
+
+                <!-- Список заданий -->
+                <section class="admin-section">
+                    <h2 class="section-title" id="tasksListTitle">📋 Завдання</h2>
+                    <div id="tasksList" class="tasks-list">
+                        <p class="empty-message">Натисніть кнопку для завантаження завдань</p>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/telegram-webapp.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script>
+        const taskTypeNames = {
+            'subscribe_channel': 'Підписка на канал',
+            'subscribe_chat': 'Підписка на чат',
+            'invite_users': 'Запросити друзів',
+            'deposit': 'Поповнити баланс',
+            'buy_tree': 'Купити дерево',
+            'harvest': 'Зібрати урожай',
+            'sell_fruits': 'Продати фрукты'
+        };
+        
+        const taskTypeEmojis = {
+            'subscribe_channel': '📢',
+            'subscribe_chat': '💬',
+            'invite_users': '👥',
+            'deposit': '💵',
+            'buy_tree': '🌳',
+            'harvest': '🍎',
+            'sell_fruits': '💰'
+        };
+        
+        // Проверка доступа
+        async function checkAdminAccess() {
+            try {
+                const userInfo = await api.getUserInfo();
+                if (!userInfo.is_admin) {
+                    document.getElementById('accessDenied').style.display = 'block';
+                    return;
+                }
+                document.getElementById('adminTasksPanel').style.display = 'block';
+            } catch (error) {
+                console.error('Error checking admin access:', error);
+                if (error.message.includes('403') || error.message.includes('Admin')) {
+                    document.getElementById('accessDenied').style.display = 'block';
+                }
+            }
+        }
+        
+        // Показ формы создания
+        function showCreateTaskForm() {
+            document.getElementById('createTaskForm').style.display = 'block';
+            updateTaskDataField();
+        }
+        
+        function hideCreateTaskForm() {
+            document.getElementById('createTaskForm').style.display = 'none';
+            // Очищаем форму
+            document.getElementById('taskTitle').value = '';
+            document.getElementById('taskDescription').value = '';
+            document.getElementById('taskReward').value = '';
+            document.getElementById('taskData').value = '';
+            document.getElementById('taskMaxCompletions').value = '';
+        }
+        
+        // Обновление поля данных в зависимости от типа
+        function updateTaskDataField() {
+            const taskType = document.getElementById('taskType').value;
+            const dataGroup = document.getElementById('taskDataGroup');
+            const dataLabel = document.getElementById('taskDataLabel');
+            const dataInput = document.getElementById('taskData');
+            
+            dataGroup.style.display = 'block';
+            
+            switch(taskType) {
+                case 'subscribe_channel':
+                    dataLabel.textContent = 'ID каналу (@channel або -1001234567890):';
+                    dataInput.placeholder = '@channel або -1001234567890';
+                    break;
+                case 'subscribe_chat':
+                    dataLabel.textContent = 'ID чату (@chat або -1001234567890):';
+                    dataInput.placeholder = '@chat або -1001234567890';
+                    break;
+                case 'invite_users':
+                    dataLabel.textContent = 'Кількість друзів:';
+                    dataInput.placeholder = '5';
+                    break;
+                case 'deposit':
+                    dataLabel.textContent = 'Мінімальна сума депозиту (₴):';
+                    dataInput.placeholder = '100.00';
+                    break;
+                case 'buy_tree':
+                    dataLabel.textContent = 'Тип дерева (apple, pear, cherry, peach):';
+                    dataInput.placeholder = 'apple';
+                    break;
+                case 'harvest':
+                    dataLabel.textContent = 'Кількість зборів:';
+                    dataInput.placeholder = '10';
+                    break;
+                case 'sell_fruits':
+                    dataLabel.textContent = 'Мінімальна сума продажу (₴):';
+                    dataInput.placeholder = '50.00';
+                    break;
+                default:
+                    dataGroup.style.display = 'none';
+            }
+        }
+        
+        // Создание задания
+        async function createTask() {
+            const taskType = document.getElementById('taskType').value;
+            const title = document.getElementById('taskTitle').value.trim();
+            const description = document.getElementById('taskDescription').value.trim();
+            const reward = parseFloat(document.getElementById('taskReward').value);
+            const taskDataValue = document.getElementById('taskData').value.trim();
+            const maxCompletions = document.getElementById('taskMaxCompletions').value;
+            
+            if (!title) {
+                telegramWebApp.showAlert('Введіть назву завдання!');
+                return;
+            }
+            
+            if (!reward || reward <= 0) {
+                telegramWebApp.showAlert('Введіть коректну нагороду!');
+                return;
+            }
+            
+            // Формируем task_data в зависимости от типа
+            let taskData = {};
+            if (taskDataValue) {
+                switch(taskType) {
+                    case 'subscribe_channel':
+                        taskData.channel_id = taskDataValue;
+                        break;
+                    case 'subscribe_chat':
+                        taskData.chat_id = taskDataValue;
+                        break;
+                    case 'invite_users':
+                        taskData.count = parseInt(taskDataValue);
+                        break;
+                    case 'deposit':
+                        taskData.amount = parseFloat(taskDataValue);
+                        break;
+                    case 'buy_tree':
+                        taskData.tree_type = taskDataValue;
+                        break;
+                    case 'harvest':
+                        taskData.count = parseInt(taskDataValue);
+                        break;
+                    case 'sell_fruits':
+                        taskData.amount = parseFloat(taskDataValue);
+                        break;
+                }
+            }
+            
+            try {
+                const result = await api.createTask({
+                    title: title,
+                    description: description || null,
+                    task_type: taskType,
+                    task_data: taskData,
+                    reward_amount: reward,
+                    reward_type: 'balance',
+                    max_completions: maxCompletions ? parseInt(maxCompletions) : null
+                });
+                
+                telegramWebApp.showAlert(`✅ Завдання створено!\nID: ${result.task_id}`);
+                hideCreateTaskForm();
+                loadTasks('all');
+            } catch (error) {
+                console.error('Error creating task:', error);
+                telegramWebApp.showAlert('Помилка створення завдання: ' + error.message);
+            }
+        }
+        
+        // Загрузка заданий
+        async function loadTasks(status = 'all') {
+            try {
+                const statusText = status === 'all' ? 'Всі завдання' : 
+                                 status === 'active' ? 'Активні завдання' : 'Завдання на паузі';
+                document.getElementById('tasksListTitle').textContent = `📋 ${statusText}`;
+                
+                const data = await api.getAdminTasks(status === 'all' ? null : status);
+                const tasksContainer = document.getElementById('tasksList');
+                
+                if (data.tasks && data.tasks.length > 0) {
+                    tasksContainer.innerHTML = data.tasks.map(task => {
+                        const emoji = taskTypeEmojis[task.task_type] || '📋';
+                        const typeName = taskTypeNames[task.task_type] || task.task_type;
+                        const statusBadge = task.status === 'active' ? '🟢 Активне' : 
+                                          task.status === 'paused' ? '⏸ На паузі' : '🔴 Завершене';
+                        const maxCompletions = task.max_completions ? 
+                            ` (${task.current_completions}/${task.max_completions})` : '';
+                        
+                        return `
+                            <div class="task-card">
+                                <div class="task-header">
+                                    <span class="task-emoji">${emoji}</span>
+                                    <div class="task-title-section">
+                                        <h4 class="task-title">${task.title}</h4>
+                                        <span class="task-type">${typeName} • ${statusBadge}</span>
+                                    </div>
+                                </div>
+                                ${task.description ? `<p style="color: var(--text-secondary); margin-top: 8px;">${task.description}</p>` : ''}
+                                <div class="task-reward">
+                                    <span class="reward-label">Нагорода:</span>
+                                    <span class="reward-amount">${formatCurrency(task.reward_amount)}₴</span>
+                                    ${maxCompletions}
+                                </div>
+                                <div class="task-actions">
+                                    ${task.status === 'active' ? 
+                                        `<button class="task-action-btn" onclick="updateTaskStatus(${task.id}, 'paused')">⏸ Пауза</button>` : 
+                                        `<button class="task-action-btn" onclick="updateTaskStatus(${task.id}, 'active')">▶ Активувати</button>`
+                                    }
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    tasksContainer.innerHTML = '<p class="empty-message">Завдань не знайдено</p>';
+                }
+            } catch (error) {
+                console.error('Error loading tasks:', error);
+                telegramWebApp.showAlert('Помилка завантаження завдань');
+            }
+        }
+        
+        async function updateTaskStatus(taskId, status) {
+            try {
+                await api.updateTaskStatus(taskId, status);
+                telegramWebApp.showAlert('✅ Статус завдання оновлено');
+                loadTasks('all');
+            } catch (error) {
+                console.error('Error updating task status:', error);
+                telegramWebApp.showAlert('Помилка оновлення статусу');
+            }
+        }
+        
+        function formatCurrency(amount) {
+            return parseFloat(amount || 0).toFixed(2);
+        }
+        
+        // Обновляем поле данных при изменении типа
+        document.getElementById('taskType').addEventListener('change', updateTaskDataField);
+        
+        // Проверяем доступ при загрузке
+        document.addEventListener('DOMContentLoaded', checkAdminAccess);
+    </script>
+    <style>
+        .form-group {
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: var(--spacing-xs);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: var(--spacing-sm);
+            background: var(--bg-card);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 16px;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-md);
+        }
+        
+        .task-actions {
+            margin-top: var(--spacing-sm);
+            display: flex;
+            gap: var(--spacing-xs);
+        }
+        
+        .task-action-btn {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            background: var(--bg-card);
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            color: var(--accent);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .task-action-btn:hover {
+            background: var(--accent);
+            color: white;
+        }
+    </style>
+</body>
+</html>
+

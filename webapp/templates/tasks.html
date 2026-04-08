@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Завдання - INVESTING PALMARON BOT</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Шапка -->
+        <header class="app-header">
+            <a href="/" class="back-button">← Назад</a>
+            <h1 class="page-title">📋 Завдання</h1>
+        </header>
+
+        <!-- Контент -->
+        <main class="main-content">
+            <!-- Статистика -->
+            <section class="cabinet-section">
+                <h3 class="section-title">📊 Ваша статистика</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-label">Виконано</div>
+                        <div class="stat-value" id="completedCount">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-label">Отримано</div>
+                        <div class="stat-value" id="totalRewards">0₴</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Доступні завдання -->
+            <section class="cabinet-section">
+                <h3 class="section-title">🎯 Доступні завдання</h3>
+                <div id="availableTasks" class="tasks-list">
+                    <p class="empty-message">Завантаження...</p>
+                </div>
+            </section>
+
+            <!-- Останні виконання -->
+            <section class="cabinet-section" id="recentCompletionsSection" style="display: none;">
+                <h3 class="section-title">📜 Останні виконання</h3>
+                <div id="recentCompletions" class="completions-list">
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/telegram-webapp.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script>
+        const taskTypeEmojis = {
+            'subscribe_channel': '📢',
+            'subscribe_chat': '💬',
+            'invite_users': '👥',
+            'deposit': '💵',
+            'buy_tree': '🌳',
+            'harvest': '🍎',
+            'sell_fruits': '💰'
+        };
+        
+        const taskTypeNames = {
+            'subscribe_channel': 'Підписка на канал',
+            'subscribe_chat': 'Підписка на чат',
+            'invite_users': 'Запросити друзів',
+            'deposit': 'Поповнити баланс',
+            'buy_tree': 'Купити дерево',
+            'harvest': 'Зібрати урожай',
+            'sell_fruits': 'Продати фрукты'
+        };
+        
+        async function loadTasks() {
+            try {
+                const data = await api.get('/api/user/tasks');
+                
+                // Статистика
+                document.getElementById('completedCount').textContent = data.stats.completed_count || 0;
+                document.getElementById('totalRewards').textContent = formatCurrency(data.stats.total_rewards || 0) + '₴';
+                
+                // Доступні завдання
+                const tasksContainer = document.getElementById('availableTasks');
+                if (data.available_tasks && data.available_tasks.length > 0) {
+                    tasksContainer.innerHTML = data.available_tasks.map(task => {
+                        const emoji = taskTypeEmojis[task.task_type] || '📋';
+                        const typeName = taskTypeNames[task.task_type] || task.task_type;
+                        const maxCompletions = task.max_completions ? ` (${task.current_completions}/${task.max_completions})` : '';
+                        const description = task.description ? `<p style="color: var(--text-secondary); font-size: 14px; margin-top: 4px;">${task.description}</p>` : '';
+                        
+                        return `
+                            <div class="task-card">
+                                <div class="task-header">
+                                    <span class="task-emoji">${emoji}</span>
+                                    <div class="task-title-section">
+                                        <h4 class="task-title">${task.title}</h4>
+                                        <span class="task-type">${typeName}</span>
+                                    </div>
+                                </div>
+                                ${description}
+                                <div class="task-reward">
+                                    <span class="reward-label">Нагорода:</span>
+                                    <span class="reward-amount">${formatCurrency(task.reward_amount)}₴</span>
+                                    ${maxCompletions}
+                                </div>
+                                <button class="task-check-btn" onclick="checkTask(${task.id})">Перевірити</button>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    tasksContainer.innerHTML = '<p class="empty-message">😴 Наразі немає доступних завдань</p>';
+                }
+                
+                // Останні виконання
+                if (data.recent_completions && data.recent_completions.length > 0) {
+                    document.getElementById('recentCompletionsSection').style.display = 'block';
+                    const completionsContainer = document.getElementById('recentCompletions');
+                    completionsContainer.innerHTML = data.recent_completions.map(completion => {
+                        const date = new Date(completion.completed_at * 1000);
+                        const dateStr = date.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' }) + ' ' + 
+                                      date.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' });
+                        return `
+                            <div class="completion-item">
+                                <span class="completion-title">${completion.task_title}</span>
+                                <span class="completion-reward">+${formatCurrency(completion.reward_received)}₴</span>
+                                <span class="completion-date">${dateStr}</span>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            } catch (error) {
+                console.error('Error loading tasks:', error);
+                telegramWebApp.showAlert('Помилка завантаження завдань');
+            }
+        }
+        
+        async function checkTask(taskId) {
+            try {
+                telegramWebApp.showAlert('Перевірка виконання завдання...\n\nФункція автоматичної перевірки в розробці. Завдання перевіряються автоматично при виконанні дій.');
+            } catch (error) {
+                console.error('Error checking task:', error);
+                telegramWebApp.showAlert('Помилка перевірки завдання');
+            }
+        }
+        
+        function formatCurrency(amount) {
+            return parseFloat(amount || 0).toFixed(2);
+        }
+        
+        document.addEventListener('DOMContentLoaded', loadTasks);
+    </script>
+    <style>
+        .tasks-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+        
+        .task-card {
+            background: var(--bg-card);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-md);
+            box-shadow: var(--shadow-sm);
+            border-left: 4px solid var(--accent);
+        }
+        
+        .task-header {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-xs);
+        }
+        
+        .task-emoji {
+            font-size: 32px;
+        }
+        
+        .task-title-section {
+            flex: 1;
+        }
+        
+        .task-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .task-type {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .task-reward {
+            margin-top: var(--spacing-sm);
+            padding-top: var(--spacing-sm);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+        
+        .reward-label {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        .reward-amount {
+            font-weight: 700;
+            color: var(--accent);
+            font-size: 16px;
+        }
+        
+        .task-check-btn {
+            margin-top: var(--spacing-sm);
+            width: 100%;
+            padding: var(--spacing-sm);
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .task-check-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .completions-list {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+        }
+        
+        .completion-item {
+            background: var(--bg-card);
+            border-radius: 8px;
+            padding: var(--spacing-sm);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: var(--spacing-xs);
+        }
+        
+        .completion-title {
+            flex: 1;
+            font-weight: 500;
+        }
+        
+        .completion-reward {
+            color: var(--accent);
+            font-weight: 600;
+        }
+        
+        .completion-date {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+    </style>
+</body>
+</html>
+

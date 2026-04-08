@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Управління садом - Адмінка</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <a href="/admin" class="back-button">← Назад</a>
+            <h1 class="page-title">🌳 Управління садом</h1>
+        </header>
+
+        <main class="main-content">
+            <!-- Поиск пользователя -->
+            <section class="admin-section">
+                <h2 class="section-title">👤 Пошук користувача</h2>
+                <div class="search-box">
+                    <input type="number" id="userIdInput" placeholder="Введіть ID користувача" class="search-input">
+                    <button onclick="loadUserGarden()" class="search-btn">🔍 Завантажити</button>
+                </div>
+            </section>
+
+            <!-- Информация о саде пользователя -->
+            <div id="userGardenInfo" style="display: none;">
+                <section class="admin-section">
+                    <h2 class="section-title">📊 Інформація про сад</h2>
+                    <div id="gardenInfoContent"></div>
+                </section>
+
+                <!-- Действия -->
+                <section class="admin-section">
+                    <h2 class="section-title">⚙️ Дії</h2>
+                    <div class="admin-grid">
+                        <button class="admin-btn" onclick="showSetLevelModal()">
+                            <span class="btn-icon">🏆</span>
+                            <span class="btn-text">Встановити рівень</span>
+                        </button>
+                        <button class="admin-btn" onclick="showAddTreeModal()">
+                            <span class="btn-icon">➕</span>
+                            <span class="btn-text">Додати дерево</span>
+                        </button>
+                        <button class="admin-btn" onclick="showRemoveTreeModal()">
+                            <span class="btn-icon">➖</span>
+                            <span class="btn-text">Видалити дерево</span>
+                        </button>
+                        <button class="admin-btn" onclick="showAddFruitModal()">
+                            <span class="btn-icon">🍎</span>
+                            <span class="btn-text">Додати фрукти</span>
+                        </button>
+                        <button class="admin-btn" onclick="showRemoveFruitModal()">
+                            <span class="btn-icon">🍏</span>
+                            <span class="btn-text">Видалити фрукти</span>
+                        </button>
+                        <button class="admin-btn" onclick="showGardenHistory()">
+                            <span class="btn-icon">📜</span>
+                            <span class="btn-text">Історія саду</span>
+                        </button>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Управление ценами -->
+            <section class="admin-section">
+                <h2 class="section-title">💰 Управління цінами</h2>
+                <div class="admin-grid">
+                    <button class="admin-btn" onclick="showTreePrices()">
+                        <span class="btn-icon">🌳</span>
+                        <span class="btn-text">Ціни дерев</span>
+                    </button>
+                    <button class="admin-btn" onclick="showFruitPrices()">
+                        <span class="btn-icon">🍎</span>
+                        <span class="btn-text">Ціни фруктів</span>
+                    </button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Модальные окна -->
+    <div id="setLevelModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🏆 Встановити рівень саду</h2>
+                <button class="modal-close" onclick="closeModal('setLevelModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="number" id="levelInput" placeholder="Рівень" min="0" class="modal-input">
+                <input type="text" id="levelReasonInput" placeholder="Причина (опціонально)" class="modal-input">
+                <button onclick="confirmSetLevel()" class="modal-btn">Підтвердити</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="addTreeModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>➕ Додати дерево</h2>
+                <button class="modal-close" onclick="closeModal('addTreeModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <select id="treeTypeSelect" class="modal-input"></select>
+                <input type="number" id="treeCountInput" placeholder="Кількість" min="1" value="1" class="modal-input">
+                <button onclick="confirmAddTree()" class="modal-btn">Підтвердити</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="removeTreeModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>➖ Видалити дерево</h2>
+                <button class="modal-close" onclick="closeModal('removeTreeModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <select id="removeTreeTypeSelect" class="modal-input"></select>
+                <input type="number" id="removeTreeCountInput" placeholder="Кількість" min="1" value="1" class="modal-input">
+                <button onclick="confirmRemoveTree()" class="modal-btn">Підтвердити</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="addFruitModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🍎 Додати фрукти</h2>
+                <button class="modal-close" onclick="closeModal('addFruitModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <select id="fruitTypeSelect" class="modal-input"></select>
+                <input type="number" id="fruitAmountInput" placeholder="Кількість" min="0.01" step="0.01" class="modal-input">
+                <button onclick="confirmAddFruit()" class="modal-btn">Підтвердити</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="removeFruitModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🍏 Видалити фрукти</h2>
+                <button class="modal-close" onclick="closeModal('removeFruitModal')">×</button>
+            </div>
+            <div class="modal-body">
+                <select id="removeFruitTypeSelect" class="modal-input"></select>
+                <input type="number" id="removeFruitAmountInput" placeholder="Кількість" min="0.01" step="0.01" class="modal-input">
+                <button onclick="confirmRemoveFruit()" class="modal-btn">Підтвердити</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/telegram-webapp.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script>
+        let currentUserId = null;
+        let currentGardenData = null;
+        let treeTypes = [];
+        let fruitTypes = [];
+
+        async function loadUserGarden() {
+            const userId = parseInt(document.getElementById('userIdInput').value);
+            if (!userId || isNaN(userId)) {
+                telegramWebApp.showAlert('Введіть коректний ID користувача');
+                return;
+            }
+
+            try {
+                const response = await api.get(`/api/admin/garden/user/${userId}`);
+                currentUserId = userId;
+                currentGardenData = response;
+                
+                displayGardenInfo(response);
+                document.getElementById('userGardenInfo').style.display = 'block';
+            } catch (error) {
+                console.error('Error loading garden:', error);
+                telegramWebApp.showAlert('Помилка завантаження: ' + error.message);
+            }
+        }
+
+        function displayGardenInfo(data) {
+            const container = document.getElementById('gardenInfoContent');
+            const levelInfo = data.level_info || {};
+            
+            let treesHtml = '<div class="info-grid">';
+            treesHtml += `<div><strong>Рівень саду:</strong> ${data.garden_level}</div>`;
+            treesHtml += `<div><strong>Назва рівня:</strong> ${levelInfo.name || '—'}</div>`;
+            treesHtml += `<div><strong>Бонус:</strong> +${levelInfo.bonus_percent || 0}%</div>`;
+            treesHtml += `<div><strong>Комісія:</strong> ${levelInfo.commission_percent || 15}%</div>`;
+            treesHtml += '</div>';
+
+            if (data.tree_counts && Object.keys(data.tree_counts).length > 0) {
+                treesHtml += '<h3>Дерева:</h3><ul>';
+                for (const [type, count] of Object.entries(data.tree_counts)) {
+                    treesHtml += `<li>${type}: ${count} шт</li>`;
+                }
+                treesHtml += '</ul>';
+            }
+
+            if (data.fruits && data.fruits.length > 0) {
+                treesHtml += '<h3>Фрукти:</h3><ul>';
+                data.fruits.forEach(fruit => {
+                    treesHtml += `<li>${fruit.type}: ${formatCurrency(fruit.amount)} шт (${formatCurrency(fruit.value)}₴)</li>`;
+                });
+                treesHtml += '</ul>';
+            }
+
+            container.innerHTML = treesHtml;
+        }
+
+        async function showSetLevelModal() {
+            if (!currentUserId) {
+                telegramWebApp.showAlert('Спочатку завантажте сад користувача');
+                return;
+            }
+            document.getElementById('setLevelModal').style.display = 'flex';
+        }
+
+        async function confirmSetLevel() {
+            const level = parseInt(document.getElementById('levelInput').value);
+            const reason = document.getElementById('levelReasonInput').value || '';
+
+            if (isNaN(level) || level < 0) {
+                telegramWebApp.showAlert('Введіть коректний рівень');
+                return;
+            }
+
+            try {
+                await api.post(`/api/admin/garden/user/${currentUserId}/set_level`, {
+                    level: level,
+                    reason: reason
+                });
+                telegramWebApp.showAlert('✅ Рівень встановлено!');
+                closeModal('setLevelModal');
+                loadUserGarden();
+            } catch (error) {
+                console.error('Error setting level:', error);
+                telegramWebApp.showAlert('Помилка: ' + error.message);
+            }
+        }
+
+        async function showAddTreeModal() {
+            if (!currentUserId) {
+                telegramWebApp.showAlert('Спочатку завантажте сад користувача');
+                return;
+            }
+
+            try {
+                const prices = await api.get('/api/admin/garden/prices/tree');
+                treeTypes = prices.prices;
+                
+                const select = document.getElementById('treeTypeSelect');
+                select.innerHTML = '<option value="">Оберіть тип дерева</option>';
+                prices.prices.forEach(tree => {
+                    select.innerHTML += `<option value="${tree.type}">${tree.emoji} ${tree.name}</option>`;
+                });
+
+                document.getElementById('addTreeModal').style.display = 'flex';
+            } catch (error) {
+                console.error('Error loading tree types:', error);
+                telegramWebApp.showAlert('Помилка завантаження типів дерев');
+            }
+        }
+
+        async function confirmAddTree() {
+            const treeType = document.getElementById('treeTypeSelect').value;
+            const count = parseInt(document.getElementById('treeCountInput').value);
+
+            if (!treeType || !count || count < 1) {
+                telegramWebApp.showAlert('Заповніть всі поля');
+                return;
+            }
+
+            try {
+                await api.post(`/api/admin/garden/user/${currentUserId}/add_tree`, {
+                    tree_type: treeType,
+                    count: count
+                });
+                telegramWebApp.showAlert('✅ Дерева додано!');
+                closeModal('addTreeModal');
+                loadUserGarden();
+            } catch (error) {
+                console.error('Error adding tree:', error);
+                telegramWebApp.showAlert('Помилка: ' + error.message);
+            }
+        }
+
+        async function showRemoveTreeModal() {
+            if (!currentUserId || !currentGardenData) {
+                telegramWebApp.showAlert('Спочатку завантажте сад користувача');
+                return;
+            }
+
+            const select = document.getElementById('removeTreeTypeSelect');
+            select.innerHTML = '<option value="">Оберіть тип дерева</option>';
+            
+            if (currentGardenData.tree_counts) {
+                for (const [type, count] of Object.entries(currentGardenData.tree_counts)) {
+                    if (count > 0) {
+                        select.innerHTML += `<option value="${type}">${type}: ${count} шт</option>`;
+                    }
+                }
+            }
+
+            document.getElementById('removeTreeModal').style.display = 'flex';
+        }
+
+        async function confirmRemoveTree() {
+            const treeType = document.getElementById('removeTreeTypeSelect').value;
+            const count = parseInt(document.getElementById('removeTreeCountInput').value);
+
+            if (!treeType || !count || count < 1) {
+                telegramWebApp.showAlert('Заповніть всі поля');
+                return;
+            }
+
+            try {
+                await api.post(`/api/admin/garden/user/${currentUserId}/remove_tree`, {
+                    tree_type: treeType,
+                    count: count
+                });
+                telegramWebApp.showAlert('✅ Дерева видалено!');
+                closeModal('removeTreeModal');
+                loadUserGarden();
+            } catch (error) {
+                console.error('Error removing tree:', error);
+                telegramWebApp.showAlert('Помилка: ' + error.message);
+            }
+        }
+
+        async function showAddFruitModal() {
+            if (!currentUserId) {
+                telegramWebApp.showAlert('Спочатку завантажте сад користувача');
+                return;
+            }
+
+            try {
+                const prices = await api.get('/api/admin/garden/prices/fruit');
+                fruitTypes = prices.prices;
+                
+                const select = document.getElementById('fruitTypeSelect');
+                select.innerHTML = '<option value="">Оберіть тип фрукту</option>';
+                prices.prices.forEach(fruit => {
+                    select.innerHTML += `<option value="${fruit.type}">${fruit.emoji} ${fruit.name}</option>`;
+                });
+
+                document.getElementById('addFruitModal').style.display = 'flex';
+            } catch (error) {
+                console.error('Error loading fruit types:', error);
+                telegramWebApp.showAlert('Помилка завантаження типів фруктів');
+            }
+        }
+
+        async function confirmAddFruit() {
+            const fruitType = document.getElementById('fruitTypeSelect').value;
+            const amount = parseFloat(document.getElementById('fruitAmountInput').value);
+
+            if (!fruitType || !amount || amount <= 0) {
+                telegramWebApp.showAlert('Заповніть всі поля');
+                return;
+            }
+
+            try {
+                await api.post(`/api/admin/garden/user/${currentUserId}/add_fruit`, {
+                    fruit_type: fruitType,
+                    amount: amount
+                });
+                telegramWebApp.showAlert('✅ Фрукти додано!');
+                closeModal('addFruitModal');
+                loadUserGarden();
+            } catch (error) {
+                console.error('Error adding fruit:', error);
+                telegramWebApp.showAlert('Помилка: ' + error.message);
+            }
+        }
+
+        async function showRemoveFruitModal() {
+            if (!currentUserId || !currentGardenData) {
+                telegramWebApp.showAlert('Спочатку завантажте сад користувача');
+                return;
+            }
+
+            const select = document.getElementById('removeFruitTypeSelect');
+            select.innerHTML = '<option value="">Оберіть тип фрукту</option>';
+            
+            if (currentGardenData.fruits) {
+                currentGardenData.fruits.forEach(fruit => {
+                    if (fruit.amount > 0) {
+                        select.innerHTML += `<option value="${fruit.type}">${fruit.type}: ${formatCurrency(fruit.amount)} шт</option>`;
+                    }
+                });
+            }
+
+            document.getElementById('removeFruitModal').style.display = 'flex';
+        }
+
+        async function confirmRemoveFruit() {
+            const fruitType = document.getElementById('removeFruitTypeSelect').value;
+            const amount = parseFloat(document.getElementById('removeFruitAmountInput').value);
+
+            if (!fruitType || !amount || amount <= 0) {
+                telegramWebApp.showAlert('Заповніть всі поля');
+                return;
+            }
+
+            try {
+                await api.post(`/api/admin/garden/user/${currentUserId}/remove_fruit`, {
+                    fruit_type: fruitType,
+                    amount: amount
+                });
+                telegramWebApp.showAlert('✅ Фрукти видалено!');
+                closeModal('removeFruitModal');
+                loadUserGarden();
+            } catch (error) {
+                console.error('Error removing fruit:', error);
+                telegramWebApp.showAlert('Помилка: ' + error.message);
+            }
+        }
+
+        async function showGardenHistory() {
+            if (!currentUserId) {
+                telegramWebApp.showAlert('Спочатку завантажте сад користувача');
+                return;
+            }
+
+            const period = prompt('Період:\n1 - Сьогодні\n2 - Тиждень\n3 - Місяць\n4 - Всі\n\nВведіть номер:', '4');
+            if (!period) return;
+
+            let periodStr = 'all';
+            if (period === '1') periodStr = 'today';
+            else if (period === '2') periodStr = 'week';
+            else if (period === '3') periodStr = 'month';
+
+            try {
+                const response = await api.get(`/api/admin/garden/history/${currentUserId}?period=${periodStr}`);
+                let message = `📜 Історія саду (${periodStr}):\n\n`;
+                
+                if (response.history.length === 0) {
+                    message += 'Історія порожня';
+                } else {
+                    response.history.slice(0, 20).forEach((item, idx) => {
+                        const date = new Date(item.timestamp * 1000).toLocaleString('uk-UA');
+                        message += `${idx + 1}. ${item.type}: ${item.amount} ${item.currency}\n${item.comment || ''}\n${date}\n\n`;
+                    });
+                    if (response.history.length > 20) {
+                        message += `... та ще ${response.history.length - 20} записів`;
+                    }
+                }
+                
+                telegramWebApp.showAlert(message);
+            } catch (error) {
+                console.error('Error loading history:', error);
+                telegramWebApp.showAlert('Помилка завантаження історії');
+            }
+        }
+
+        async function showTreePrices() {
+            try {
+                const response = await api.get('/api/admin/garden/prices/tree');
+                let message = '🌳 Ціни дерев:\n\n';
+                
+                response.prices.forEach(tree => {
+                    message += `${tree.emoji} ${tree.name}: ${formatCurrency(tree.price)}₴\n`;
+                });
+                
+                telegramWebApp.showAlert(message);
+            } catch (error) {
+                console.error('Error loading tree prices:', error);
+                telegramWebApp.showAlert('Помилка завантаження цін');
+            }
+        }
+
+        async function showFruitPrices() {
+            try {
+                const response = await api.get('/api/admin/garden/prices/fruit');
+                let message = '🍎 Ціни фруктів:\n\n';
+                
+                response.prices.forEach(fruit => {
+                    message += `${fruit.emoji} ${fruit.name}: ${formatCurrency(fruit.price)}₴\n`;
+                });
+                
+                telegramWebApp.showAlert(message);
+            } catch (error) {
+                console.error('Error loading fruit prices:', error);
+                telegramWebApp.showAlert('Помилка завантаження цін');
+            }
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function formatCurrency(amount) {
+            return parseFloat(amount || 0).toFixed(2);
+        }
+    </script>
+    <style>
+        .search-box {
+            display: flex;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .search-input {
+            flex: 1;
+            padding: var(--spacing-sm);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--border-radius);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 16px;
+        }
+
+        .search-btn {
+            padding: var(--spacing-sm) var(--spacing-md);
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: var(--border-radius);
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .info-grid div {
+            padding: var(--spacing-sm);
+            background: var(--bg-secondary);
+            border-radius: var(--border-radius);
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: var(--spacing-md);
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border-radius: var(--border-radius);
+            max-width: 500px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-md);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-header h2 {
+            margin: 0;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 32px;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            line-height: 32px;
+        }
+
+        .modal-body {
+            padding: var(--spacing-md);
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: var(--spacing-sm);
+            margin-bottom: var(--spacing-sm);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--border-radius);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 16px;
+        }
+
+        .modal-btn {
+            width: 100%;
+            padding: var(--spacing-md);
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: var(--border-radius);
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: var(--spacing-sm);
+        }
+    </style>
+</body>
+</html>
+

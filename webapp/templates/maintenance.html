@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Технічні роботи</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <style>
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .beta-invite {
+            margin-top: 24px;
+            padding: 18px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .beta-invite h3 {
+            margin-top: 0;
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+        .beta-invite p {
+            margin: 4px 0;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        .beta-cta {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 12px;
+            padding: 10px 20px;
+            border-radius: 999px;
+            background: linear-gradient(120deg, #4facfe, #00f2fe);
+            color: #0b1130;
+            font-weight: 600;
+            text-decoration: none;
+            box-shadow: 0 10px 25px rgba(0, 242, 254, 0.2);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .beta-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 30px rgba(0, 242, 254, 0.25);
+        }
+        .beta-note {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6) !important;
+        }
+        .beta-user-id {
+            margin-top: 14px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            background: rgba(7, 16, 42, 0.6);
+            border: 1px dashed rgba(255, 255, 255, 0.2);
+        }
+        .beta-user-id-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+        .beta-user-id-value {
+            font-size: 20px;
+            font-weight: 700;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="maintenance-overlay active" style="position: static; background: transparent;">
+        <div class="maintenance-card">
+            <div class="maintenance-icon">🛠</div>
+            <h2>Технічні роботи</h2>
+            <p>Ми тимчасово обмежили доступ до кабінету, щоб встановити оновлення. Зазвичай це займає лише кілька хвилин.</p>
+            <!-- VERSION 2.0 - BETA INVITE ALWAYS VISIBLE -->
+            <div class="beta-invite">
+                <h3>Хочеш протестувати першим?</h3>
+                <p>Бета-тестери отримують ранній доступ навіть під час оновлень. Напиши нам у Telegram та отримай персональний пропуск.</p>
+                <a class="beta-cta" href="https://t.me/palmaron" target="_blank" rel="noopener noreferrer">
+                    <span>Написати @palmaron</span>
+                </a>
+                {% if beta_user_id %}
+                <div class="beta-user-id">
+                    <div class="beta-user-id-label">Твій ID для бета-доступу:</div>
+                    <div class="beta-user-id-value">{{ beta_user_id }}</div>
+                    <p class="beta-note">Скопіюй та надішли цей ID у повідомленні — ми включимо тебе до списку тестерів.</p>
+                </div>
+                {% else %}
+                <p class="beta-note">Після підтвердження твій акаунт отримає доступ навіть під час технічних робіт.</p>
+                {% endif %}
+            </div>
+            <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.6);">Дякуємо за розуміння 💙</p>
+        </div>
+    </div>
+</body>
+</html>
+

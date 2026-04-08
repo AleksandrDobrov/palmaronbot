@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ваша ссылка WebApp</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <style>
+        .url-container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 30px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            text-align: center;
+        }
+        .url-box {
+            background: var(--bg-color);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            word-break: break-all;
+            font-size: 18px;
+            font-family: monospace;
+            color: var(--accent-color);
+        }
+        .copy-button {
+            background: linear-gradient(135deg, var(--accent-color), var(--accent-color-dark));
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px;
+            transition: transform 0.2s;
+        }
+        .copy-button:hover {
+            transform: scale(1.05);
+        }
+        .copy-button:active {
+            transform: scale(0.95);
+        }
+        .success-message {
+            background: var(--success-color);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            display: none;
+        }
+        .info-box {
+            background: var(--card-bg);
+            border-left: 4px solid var(--accent-color);
+            padding: 15px;
+            margin: 20px 0;
+            text-align: left;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <h1>🌐 Ваша ссылка WebApp</h1>
+        </header>
+
+        <main class="main-content">
+            <div class="url-container">
+                {% if url %}
+                    <h2>✅ Ссылка найдена!</h2>
+                    <p>Скопируйте эту ссылку и отправьте пользователям:</p>
+                    
+                    <div class="url-box" id="urlBox">
+                        {{ url }}
+                    </div>
+                    
+                    <button class="copy-button" onclick="copyUrl()">
+                        📋 Копировать ссылку
+                    </button>
+                    
+                    <div class="success-message" id="successMessage">
+                        ✅ Ссылка скопирована в буфер обмена!
+                    </div>
+                    
+                    <div class="info-box">
+                        <h3>💡 Информация:</h3>
+                        <ul>
+                            <li>Эта ссылка работает на всех устройствах</li>
+                            <li>Токен доступа уже включен в ссылку</li>
+                            <li>Ссылка сохранена в файле <code>webapp_url.txt</code></li>
+                            {% if token %}
+                            <li>Токен: <code>{{ token }}</code></li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    
+                    <div style="margin-top: 30px;">
+                        <a href="/" class="copy-button" style="text-decoration: none; display: inline-block;">
+                            ⬅️ На главную
+                        </a>
+                    </div>
+                {% else %}
+                    <h2>❌ Ссылка не найдена</h2>
+                    <p>Ссылка еще не была создана.</p>
+                    
+                    <div class="info-box">
+                        <h3>📋 Как создать ссылку:</h3>
+                        <ol>
+                            <li>Запустите скрипт <code>start_public_fixed.bat</code></li>
+                            <li>Дождитесь создания публичной ссылки</li>
+                            <li>Ссылка будет автоматически сохранена</li>
+                            <li>Обновите эту страницу</li>
+                        </ol>
+                    </div>
+                    
+                    <div style="margin-top: 30px;">
+                        <a href="/" class="copy-button" style="text-decoration: none; display: inline-block;">
+                            ⬅️ На главную
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function copyUrl() {
+            const urlBox = document.getElementById('urlBox');
+            const url = urlBox.textContent.trim();
+            
+            // Копируем в буфер обмена
+            navigator.clipboard.writeText(url).then(function() {
+                // Показываем сообщение об успехе
+                const successMessage = document.getElementById('successMessage');
+                successMessage.style.display = 'block';
+                setTimeout(function() {
+                    successMessage.style.display = 'none';
+                }, 3000);
+            }).catch(function(err) {
+                // Fallback для старых браузеров
+                const textArea = document.createElement('textarea');
+                textArea.value = url;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    const successMessage = document.getElementById('successMessage');
+                    successMessage.style.display = 'block';
+                    setTimeout(function() {
+                        successMessage.style.display = 'none';
+                    }, 3000);
+                } catch (err) {
+                    alert('Не удалось скопировать ссылку. Скопируйте вручную.');
+                }
+                document.body.removeChild(textArea);
+            });
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Інформація - INVESTING PALMARON BOT</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <a href="/" class="back-button">← Назад</a>
+            <h1>ℹ️ Інформація</h1>
+        </header>
+
+        <main class="main-content info-main">
+            <section class="glass-panel info-hero">
+                <p class="section-label">Платформа INVESTING</p>
+                <h2>ℹ️ Угода, правила та підтримка</h2>
+                <p class="info-hero-text">
+                    Тут зібрані ті ж розділи, що й у Telegram-боті: угода користувача, деталі платформи, безпека та канали зв'язку.
+                    Оберіть потрібний блок, щоб відкрити повний текст у чистому вікні.
+                </p>
+                <div class="info-hero-actions">
+                    <button class="primary-btn" onclick="openInfoSheet('platform')">Про платформу</button>
+                    <button class="ghost-btn" onclick="openInfoSheet('agreement')">Угода</button>
+                    <button class="ghost-btn" onclick="openInfoSheet('rules')">Правила</button>
+                </div>
+            </section>
+
+            <section class="info-grid">
+                <article class="glass-panel info-card">
+                    <div class="info-card-icon">🚀</div>
+                    <div class="info-card-body">
+                        <h3>Про платформу</h3>
+                        <p>Як працює бот + веб-кабінет, які розділи доступні інвестору.</p>
+                        <button class="secondary-btn" onclick="openInfoSheet('platform')">Відкрити</button>
+                    </div>
+                </article>
+                <article class="glass-panel info-card">
+                    <div class="info-card-icon">📋</div>
+                    <div class="info-card-body">
+                        <h3>Угода користувача</h3>
+                        <p>Права, обмеження, відповідальність сторін та політика ризиків.</p>
+                        <button class="secondary-btn" onclick="openInfoSheet('agreement')">Переглянути</button>
+                    </div>
+                </article>
+                <article class="glass-panel info-card">
+                    <div class="info-card-icon">📜</div>
+                    <div class="info-card-body">
+                        <h3>Правила платформи</h3>
+                        <p>Депозити, виводи, сад, подарунки, як уникнути блокувань.</p>
+                        <button class="secondary-btn" onclick="openInfoSheet('rules')">Переглянути</button>
+                    </div>
+                </article>
+                <article class="glass-panel info-card">
+                    <div class="info-card-icon">⚠️</div>
+                    <div class="info-card-body">
+                        <h3>Ризики та безпека</h3>
+                        <p>Офіційні попередження, поради щодо акаунту та антифроду.</p>
+                        <button class="secondary-btn" onclick="openInfoSheet('risks')">Переглянути</button>
+                    </div>
+                </article>
+                <article class="glass-panel info-card">
+                    <div class="info-card-icon">💬</div>
+                    <div class="info-card-body">
+                        <h3>Контакт з адміністрацією</h3>
+                        <p>Як написати адміну, відкрити тікет або знайти офіційні канали.</p>
+                        <button class="secondary-btn" onclick="openInfoSheet('support')">Відкрити</button>
+                    </div>
+                </article>
+            </section>
+
+            <section class="glass-panel info-contact-card">
+                <div>
+                    <h3>Потрібна допомога просто зараз?</h3>
+                    <p>Відкрийте чат у боті або напишіть напряму @palmaron — відповімо так само, як у Telegram.</p>
+                </div>
+                <div class="info-contact-actions">
+                    <button class="primary-btn" onclick="openInfoLink('https://t.me/palmaron')">Написати в Telegram</button>
+                    <button class="ghost-btn" onclick="openSupportTicket()">Відкрити тікет</button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div class="info-modal" id="infoModal" aria-hidden="true">
+        <div class="info-modal-content glass-panel">
+            <div class="info-modal-header">
+                <div>
+                    <p id="infoModalSubtitle" class="info-modal-subtitle"></p>
+                    <h3 id="infoModalTitle">Розділ</h3>
+                </div>
+                <button class="modal-close" onclick="closeInfoModal()">×</button>
+            </div>
+            <div class="info-modal-body" id="infoModalBody"></div>
+            <div class="info-modal-footer" id="infoModalFooter"></div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/api.js') }}"></script>
+    <script>
+        function resolveTelegramApp() {
+            if (window.telegramWebApp) { return window.telegramWebApp; }
+            if (window.Telegram) {
+                if (window.Telegram.WebApp) { return window.Telegram.WebApp; }
+                if (window.Telegram.webApp) { return window.Telegram.webApp; }
+            }
+            return null;
+        }
+
+        const tgApp = resolveTelegramApp();
+        if (tgApp && typeof tgApp.ready === 'function') {
+            try { tgApp.ready(); } catch (errReady) { console.warn('tg.ready error', errReady); }
+        }
+        if (tgApp && typeof tgApp.expand === 'function') {
+            try { tgApp.expand(); } catch (errExpand) { console.warn('tg.expand error', errExpand); }
+        }
+
+        const INFO_SHEETS = {
+            platform: {
+                title: 'Про платформу',
+                subtitle: 'Єдине середовище: Telegram-бот + веб-кабінет з однаковою економікою.',
+                sections: [
+                    {
+                        heading: 'Що доступно інвестору',
+                        bullets: [
+                            '🌳 Сад і 3D-поле: купуйте дерева, прокачуйте рівні та збирайте врожай.',
+                            '🎁 Щоденний подарунок «Кейс удачі» з реальними призами.',
+                            '💳 Поповнення та вивід у окремих безпечних формах.',
+                            '🔔 Глобальні сповіщення про депозити, сад і підтримку.'
+                        ]
+                    },
+                    {
+                        heading: 'Як працює звʼязка бот + веб',
+                        bullets: [
+                            '⚙️ Авторизація через Telegram initData — акаунт той самий, що в боті.',
+                            '🪙 Баланси, сад, історія йдуть з однієї бази даних (SQLite + Flask).',
+                            '🪄 Усі дії з садом чи фінансами миттєво з’являються в боті.'
+                        ]
+                    },
+                    {
+                        heading: 'Навіщо цей розділ',
+                        bullets: [
+                            '👀 Показати прозорість платформі й пояснити функції новачкам.',
+                            '🧭 Дати швидкий доступ до правил без повернення в бот.'
+                        ]
+                    }
+                ],
+                actions: [
+                    { label: 'Відкрити бот', url: 'https://t.me/palmaron' }
+                ]
+            },
+            agreement: {
+                title: 'Угода користувача',
+                subtitle: 'Викладені умови, з якими ви погоджуєтесь, працюючи з платформою.',
+                sections: [
+                    {
+                        heading: 'Основні положення',
+                        bullets: [
+                            '✔️ Платформа забезпечує сервіс гри/садівництва та обліку балансу.',
+                            '✔️ Ви несете відповідальність за введені дані та збереження акаунту.',
+                            '✔️ Адміністрація може змінювати тарифи й правила із повідомленням у новинах.'
+                        ]
+                    },
+                    {
+                        heading: 'Що заборонено',
+                        bullets: [
+                            '⛔ Обман адмінів, мультиакаунти, спроби зміни коду клієнта.',
+                            '⛔ Використання сторонніх скриптів чи вразливостей.',
+                            '⛔ Публічне розповсюдження вмісту платформи без дозволу.'
+                        ]
+                    },
+                    {
+                        heading: 'Дисклеймер',
+                        bullets: [
+                            '⚠️ Будь-які інвестиції повʼязані з ризиком — рішення ухвалюєте самостійно.',
+                            '⚠️ Сервіс не є банком/фінансовою установою.'
+                        ]
+                    }
+                ]
+            },
+            rules: {
+                title: 'Правила платформи',
+                subtitle: 'Повторюють текст у боті «Правила/Про платформу».',
+                sections: [
+                    {
+                        heading: 'Фінанси',
+                        bullets: [
+                            '💳 Депозити підтверджуються вручну або автоматично — чекайте сповіщення.',
+                            '🏦 Вивід можливий лише на картки, вказані у формі, із врахуванням лімітів.',
+                            '🧾 Усі рішення щодо відмови супроводжуємо причиною у сповіщенні.'
+                        ]
+                    },
+                    {
+                        heading: 'Сад та подарунки',
+                        bullets: [
+                            '🌱 Вчасно поливайте дерева, щоб не втрачати врожай.',
+                            '🎡 Щоденний подарунок має лише 3 спроби — бомба обнуляє накопичене.',
+                            '🪙 Рівні саду та бусти відповідають тим самим значенням, що й у боті.'
+                        ]
+                    },
+                    {
+                        heading: 'Комʼюніті',
+                        bullets: [
+                            '🤝 Поважайте інших користувачів та адміністраторів.',
+                            '🚫 Спам і реклама без дозволу заборонені.'
+                        ]
+                    }
+                ]
+            },
+            risks: {
+                title: 'Ризики та безпека',
+                subtitle: 'Про відповідальність та як захистити акаунт.',
+                sections: [
+                    {
+                        heading: 'Що треба знати',
+                        bullets: [
+                            '🔐 Зберігайте доступ до Telegram — саме він підтверджує вашу особу.',
+                            '🧑‍💻 Не передавайте доступ до кабінету третім особам.',
+                            '🐞 Якщо знайшли помилку — напишіть адміну, отримаєте бонус.'
+                        ]
+                    },
+                    {
+                        heading: 'Можливі ризики',
+                        bullets: [
+                            '📉 Коливання нагород і врожаю залежить від внутрішньої економіки.',
+                            '🕒 Вивід може бути затриманий у разі перевірки транзакції.'
+                        ]
+                    }
+                ]
+            },
+            support: {
+                title: 'Підтримка та контакти',
+                subtitle: 'Як швидко отримати відповідь або відкрити офіційний тікет.',
+                sections: [
+                    {
+                        heading: 'Основні канали',
+                        bullets: [
+                            '💬 Напишіть @palmaron у Telegram — отримаєте персональну відповідь.',
+                            '🎟️ Відкрийте тікет у кабінеті («Підтримка») та відстежуйте статус.',
+                            '📢 Слідкуйте за новинами у розділі «Новини проєкту».'
+                        ]
+                    },
+                    {
+                        heading: 'Як писати у підтримку',
+                        bullets: [
+                            '1️⃣ Вкажіть ID користувача та деталі ситуації.',
+                            '2️⃣ Додайте скрін/чек, якщо це фінансове питання.',
+                            '3️⃣ Не дублюйте звернення — це пришвидшує відповідь.'
+                        ]
+                    }
+                ],
+                actions: [
+                    { label: 'Написати @palmaron', url: 'https://t.me/palmaron' }
+                ]
+            }
+        };
+
+        const infoModal = document.getElementById('infoModal');
+        const modalTitle = document.getElementById('infoModalTitle');
+        const modalSubtitle = document.getElementById('infoModalSubtitle');
+        const modalBody = document.getElementById('infoModalBody');
+        const modalFooter = document.getElementById('infoModalFooter');
+
+        function openInfoSheet(key) {
+            const sheet = INFO_SHEETS[key];
+            if (!sheet) return;
+            modalTitle.textContent = sheet.title;
+            modalSubtitle.textContent = sheet.subtitle || '';
+            modalBody.innerHTML = renderSheetSections(sheet.sections || []);
+            modalFooter.innerHTML = renderSheetActions(sheet.actions || []);
+            infoModal.classList.add('open');
+            document.body.classList.add('modal-open');
+        }
+
+        function renderSheetSections(sections) {
+            if (!Array.isArray(sections) || !sections.length) {
+                return '<p>Текст буде додано незабаром.</p>';
+            }
+            return sections.map((section) => {
+                const bullets = (section.bullets || []).map((item) => `<li>${item}</li>`).join('');
+                return `
+                    <div class="info-modal-section">
+                        <h4>${section.heading || ''}</h4>
+                        ${section.description ? `<p>${section.description}</p>` : ''}
+                        ${bullets ? `<ul>${bullets}</ul>` : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderSheetActions(actions) {
+            if (!actions.length) return '';
+            return `
+                <div class="info-modal-actions">
+                    ${actions.map((action) => `<button class="secondary-btn" onclick="openInfoLink('${action.url}')">${action.label}</button>`).join('')}
+                </div>
+            `;
+        }
+
+        function closeInfoModal() {
+            infoModal.classList.remove('open');
+            document.body.classList.remove('modal-open');
+        }
+
+        infoModal.addEventListener('click', (event) => {
+            if (event.target === infoModal) {
+                closeInfoModal();
+            }
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && infoModal.classList.contains('open')) {
+                closeInfoModal();
+            }
+        });
+
+        function openInfoLink(url) {
+            if (!url) return;
+            if (tgApp && typeof tgApp.openTelegramLink === 'function' && url.indexOf('https://t.me/') === 0) {
+                tgApp.openTelegramLink(url);
+                return;
+            }
+            window.open(url, '_blank', 'noopener,noreferrer');
+        }
+
+        function openSupportTicket() {
+            openInfoSheet('support');
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+

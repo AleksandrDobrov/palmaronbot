@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Бета-доступ - INVESTING PALMARON BOT</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <h1 class="page-title">🔐 Бета-доступ</h1>
+        </header>
+
+        <main class="main-content">
+            <section class="cabinet-section">
+                <div class="beta-access-card">
+                    <h2>Доступ до бета-версії</h2>
+                    <p>Для доступу до веб-додатку потрібен токен доступу.</p>
+                    
+                    {% if error %}
+                    <div class="error-message" style="margin: 20px 0; padding: 15px; background: rgba(245, 87, 108, 0.2); border-radius: 8px; color: #f5576c;">
+                        {{ error }}
+                    </div>
+                    {% endif %}
+                    
+                    <form method="POST" action="/beta/access" class="beta-form">
+                        <input 
+                            type="text" 
+                            name="token" 
+                            placeholder="Введіть токен доступу" 
+                            required
+                            class="beta-input"
+                            autocomplete="off"
+                        >
+                        <button type="submit" class="beta-submit-btn">
+                            Увійти
+                        </button>
+                    </form>
+                    
+                    <p class="beta-hint">
+                        Зв'яжіться з адміністратором для отримання токену доступу.
+                    </p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <style>
+        .beta-access-card {
+            background: var(--bg-card);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow-lg);
+            text-align: center;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .beta-access-card h2 {
+            margin: 0 0 var(--spacing-md) 0;
+            font-size: 24px;
+        }
+
+        .beta-access-card p {
+            color: var(--text-secondary);
+            margin: var(--spacing-sm) 0;
+        }
+
+        .beta-form {
+            margin: var(--spacing-lg) 0;
+        }
+
+        .beta-input {
+            width: 100%;
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--border-radius);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 16px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .beta-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .beta-submit-btn {
+            width: 100%;
+            padding: var(--spacing-md);
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: var(--border-radius);
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .beta-submit-btn:hover {
+            transform: scale(1.02);
+        }
+
+        .beta-submit-btn:active {
+            transform: scale(0.98);
+        }
+
+        .beta-hint {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: var(--spacing-md);
+        }
+    </style>
+</body>
+</html>
+
